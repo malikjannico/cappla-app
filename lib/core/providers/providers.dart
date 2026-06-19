@@ -81,7 +81,11 @@ final authStateSyncProvider = StreamProvider<UserModel?>((ref) {
   final authService = ref.watch(authServiceProvider);
   final stream = authService.userStateChanges;
   final subscription = stream.listen((user) {
-    if (user == null || user.status == 'Inactive') {
+    if (user == null) {
+      if (authService.hasCurrentUser) {
+        authService.signOut();
+      }
+    } else if (user.status == 'Inactive') {
       authService.signOut();
     }
     ref.read(currentUserProvider.notifier).state = user;

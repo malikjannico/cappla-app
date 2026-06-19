@@ -14,6 +14,13 @@ class AuthService {
 
   FirebaseAuth get _firebaseAuth => _auth as FirebaseAuth;
 
+  bool get hasCurrentUser {
+    if (_auth is FirebaseAuth) {
+      return _firebaseAuth.currentUser != null;
+    }
+    return (_auth as dynamic).currentUser != null;
+  }
+
   Stream<UserModel?> get userStateChanges {
     final Stream<dynamic> authStateChangesStream;
     if (_auth is FirebaseAuth) {

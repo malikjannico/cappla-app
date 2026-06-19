@@ -55,6 +55,9 @@ class RouterTransitionNotifier extends ChangeNotifier {
     ref.listen(orgUnitsStreamProvider, (previous, next) {
       notifyListeners();
     });
+    ref.listen(authStateSyncProvider, (previous, next) {
+      notifyListeners();
+    });
   }
 }
 
@@ -67,7 +70,12 @@ class RiverpodAuthState implements AuthStateInterface {
   final List<OrgUnitModel> allOrgs;
   @override
   final bool isOrgUnitsLoading;
-  RiverpodAuthState(this.user, this.allOrgs, {this.isOrgUnitsLoading = false});
+
+  RiverpodAuthState(
+    this.user,
+    this.allOrgs, {
+    this.isOrgUnitsLoading = false,
+  });
 
   @override
   bool get isAuthenticated => user != null;
