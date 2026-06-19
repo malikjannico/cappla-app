@@ -1,6 +1,17 @@
 const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+
+function loadTemplate(templateName, variables) {
+  const templatePath = path.join(__dirname, 'templates', `${templateName}.html`);
+  let content = fs.readFileSync(templatePath, 'utf8');
+  for (const [key, value] of Object.entries(variables)) {
+    content = content.replaceAll(`{{${key}}}`, value);
+  }
+  return content;
+}
 
 admin.initializeApp();
 
@@ -70,17 +81,7 @@ exports.onRequestResetCode = functions.region('europe-west3').firestore
       });
 
       // Send the email
-      const html = `
-        <div style="font-family: sans-serif; padding: 20px;">
-          <p>Hello,</p>
-          <p>We received a request to reset your password. Use the following verification code to proceed:</p>
-          <h2 style="font-size: 24px; letter-spacing: 2px; color: #006699;">${code}</h2>
-          <p>This code will expire in 15 minutes.</p>
-          <p>If you did not request a password reset, please ignore this email.</p>
-          <br>
-          <p>Best regards,<br>The Cappla Team</p>
-        </div>
-      `;
+      const html = loadTemplate('reset_code', { code: code });
       await sendMail(email, 'Password Reset Verification Code', html);
 
       await snap.ref.update({
@@ -257,18 +258,7 @@ exports.onSendActivationEmail = functions.region('europe-west3').firestore
       // Link to the reset password page of the correct environment pre-populated with the email
       const resetLink = `${baseUrl}/#/reset-password?email=${encodeURIComponent(email)}`;
 
-      const html = `
-        <div style="font-family: sans-serif; padding: 20px;">
-          <p>Hello,</p>
-          <p>Welcome to Cappla! An account has been created for you in the planning portal.</p>
-          <p>To set your password and activate your account, please click the link below:</p>
-          <p><a href="${resetLink}" style="display: inline-block; padding: 10px 20px; color: #fff; background-color: #007799; text-decoration: none; border-radius: 4px;">Activate Account</a></p>
-          <p>Alternatively, copy and paste this link into your browser:</p>
-          <p><a href="${resetLink}">${resetLink}</a></p>
-          <br>
-          <p>Best regards,<br>The Cappla Team</p>
-        </div>
-      `;
+      const html = loadTemplate('activation', { resetLink: resetLink });
       
       await sendMail(email, 'Activate Your Cappla Account', html);
       console.log(`Successfully sent activation email to ${email}`);
