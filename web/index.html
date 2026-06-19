@@ -33,6 +33,18 @@
   <link rel="manifest" href="manifest.json">
 
   <!-- Preconnect and Google Fonts -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for (let registration of registrations) {
+          registration.unregister();
+          console.log('Successfully unregistered stale service worker.');
+        }
+      }).catch(function(err) {
+        console.error('Error unregistering service worker:', err);
+      });
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700&display=swap" rel="stylesheet">
