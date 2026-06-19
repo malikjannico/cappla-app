@@ -314,5 +314,43 @@ void main() {
       final result = appRedirectGuard(mockContext, mockState, authState);
       expect(result, isNull);
     });
+
+    test(
+      'Test Case 11: Access plan/settings without org unit (Administrator) redirects to / even if isOrgUnitsLoading is true',
+      () {
+        when(() => mockState.matchedLocation).thenReturn(RouterPaths.planning);
+        final authState = TestAuthState(
+          isAuthenticated: true,
+          isOrgUnitsLoading: true,
+          currentUser: UserProfile(
+            email: 'admin@example.com',
+            role: 'Administrator',
+            status: 'Active',
+            orgUnitId: null,
+          ),
+        );
+        final result = appRedirectGuard(mockContext, mockState, authState);
+        expect(result, equals(RouterPaths.home));
+      },
+    );
+
+    test(
+      'Test Case 12: Access plan/settings without org unit (Standard User) redirects to / even if isOrgUnitsLoading is true',
+      () {
+        when(() => mockState.matchedLocation).thenReturn(RouterPaths.planning);
+        final authState = TestAuthState(
+          isAuthenticated: true,
+          isOrgUnitsLoading: true,
+          currentUser: UserProfile(
+            email: 'user@example.com',
+            role: 'User',
+            status: 'Active',
+            orgUnitId: null,
+          ),
+        );
+        final result = appRedirectGuard(mockContext, mockState, authState);
+        expect(result, equals(RouterPaths.home));
+      },
+    );
   });
 }

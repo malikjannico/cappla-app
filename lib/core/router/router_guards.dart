@@ -53,13 +53,15 @@ String? appRedirectGuard(
 
   // 2. Authenticated users going to auth pages
   if (isLoggingIn || isResettingPassword) {
+    final hasOrgUnitId =
+        currentUser.orgUnitId != null && currentUser.orgUnitId!.isNotEmpty;
+    if (!hasOrgUnitId) {
+      return RouterPaths.home;
+    }
     if (authState.isOrgUnitsLoading) {
       return null; // Defer redirect until organization units stream resolves
     }
-    final hasActiveOrgUnit =
-        currentUser.orgUnitId != null &&
-        currentUser.orgUnitId!.isNotEmpty &&
-        authState.isOrgUnitActive(currentUser.orgUnitId!);
+    final hasActiveOrgUnit = authState.isOrgUnitActive(currentUser.orgUnitId!);
     if (!hasActiveOrgUnit) {
       return RouterPaths.home;
     }
@@ -69,13 +71,15 @@ String? appRedirectGuard(
   // 2.5. Root Path Guard
   final isHome = state.matchedLocation == RouterPaths.home;
   if (isHome) {
+    final hasOrgUnitId =
+        currentUser.orgUnitId != null && currentUser.orgUnitId!.isNotEmpty;
+    if (!hasOrgUnitId) {
+      return null; // Allow staying on home /
+    }
     if (authState.isOrgUnitsLoading) {
       return null; // Defer redirect until organization units stream resolves
     }
-    final hasActiveOrgUnit =
-        currentUser.orgUnitId != null &&
-        currentUser.orgUnitId!.isNotEmpty &&
-        authState.isOrgUnitActive(currentUser.orgUnitId!);
+    final hasActiveOrgUnit = authState.isOrgUnitActive(currentUser.orgUnitId!);
     if (hasActiveOrgUnit) {
       return RouterPaths.planning;
     }
@@ -89,13 +93,15 @@ String? appRedirectGuard(
   final isSettings = state.matchedLocation == RouterPaths.settings;
 
   if (isPlanning || isSettings) {
+    final hasOrgUnitId =
+        currentUser.orgUnitId != null && currentUser.orgUnitId!.isNotEmpty;
+    if (!hasOrgUnitId) {
+      return RouterPaths.home; // Both users and admins redirect to home /
+    }
     if (authState.isOrgUnitsLoading) {
       return null; // Defer redirect until organization units stream resolves
     }
-    final hasActiveOrgUnit =
-        currentUser.orgUnitId != null &&
-        currentUser.orgUnitId!.isNotEmpty &&
-        authState.isOrgUnitActive(currentUser.orgUnitId!);
+    final hasActiveOrgUnit = authState.isOrgUnitActive(currentUser.orgUnitId!);
     if (!hasActiveOrgUnit) {
       return RouterPaths.home; // Both users and admins redirect to home /
     }
