@@ -10,6 +10,7 @@
 // For Local Emulator: Set FIREBASE_AUTH_EMULATOR_HOST="127.0.0.1:9099" and FIRESTORE_EMULATOR_HOST="127.0.0.1:8080"
 
 const admin = require('firebase-admin');
+const crypto = require('crypto');
 
 // Ensure command-line arguments are provided
 const args = process.argv.slice(2);
@@ -32,6 +33,37 @@ admin.initializeApp({
 const db = admin.firestore();
 const auth = admin.auth();
 
+// Generate a cryptographically secure random password
+function generateSecurePassword() {
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const numbers = '0123456789';
+  const specials = '!@#$%^&*()_+~`|}{[]:;?><,./-=';
+  const all = lowercase + uppercase + numbers + specials;
+
+  let password = '';
+  // Ensure we include at least one character from each class
+  password += lowercase[crypto.randomInt(0, lowercase.length)];
+  password += uppercase[crypto.randomInt(0, uppercase.length)];
+  password += numbers[crypto.randomInt(0, numbers.length)];
+  password += specials[crypto.randomInt(0, specials.length)];
+
+  // Fill the rest up to 16 characters
+  for (let i = 0; i < 12; i++) {
+    password += all[crypto.randomInt(0, all.length)];
+  }
+
+  // Shuffle using Fisher-Yates
+  const arr = password.split('');
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = crypto.randomInt(0, i + 1);
+    const temp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = temp;
+  }
+  return arr.join('');
+}
+
 async function provisionAdmin() {
   console.log(`Attempting to provision administrator: ${fullName} (${email})`);
 
@@ -43,8 +75,8 @@ async function provisionAdmin() {
       console.log(`User already exists in Firebase Authentication (UID: ${userRecord.uid})`);
     } catch (error) {
       if (error.code === 'auth/user-not-found') {
-        // Generate a cryptographically secure-ish random temp password
-        const tempPassword = Math.random().toString(36).slice(-10) + 'A1!' + Math.random().toString(36).slice(-4).toUpperCase();
+        // Generate a cryptographically secure random temp password
+        const tempPassword = generateSecurePassword();
         userRecord = await auth.createUser({
           email: email,
           emailVerified: true,

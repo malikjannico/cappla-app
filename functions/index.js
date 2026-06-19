@@ -57,8 +57,8 @@ exports.onRequestResetCode = functions.firestore
         return;
       }
 
-      // Generate a 6-digit code
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      // Generate a cryptographically secure 6-digit code
+      const code = crypto.randomInt(100000, 1000000).toString();
       const hashedCode = crypto.createHash('sha256').update(code).digest('hex');
       const expiresAt = admin.firestore.Timestamp.fromDate(new Date(Date.now() + 15 * 60 * 1000)); // 15 minutes
 
