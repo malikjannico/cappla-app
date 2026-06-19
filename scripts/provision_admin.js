@@ -20,8 +20,8 @@ if (args.length < 2) {
 
 const email = args[0].trim().toLowerCase();
 const fullName = args[1].trim();
-// Default to the predefined IT DQS team ID if none is supplied
-const orgUnitId = args[2] ? args[2].trim() : 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d';
+const rawOrgUnitId = args[2] ? args[2].trim() : null;
+const orgUnitId = (rawOrgUnitId === 'null' || rawOrgUnitId === 'none' || !rawOrgUnitId) ? null : rawOrgUnitId;
 
 // Initialize Firebase Admin SDK
 // Uses GOOGLE_APPLICATION_CREDENTIALS env var automatically, or defaults to application credentials.
