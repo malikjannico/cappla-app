@@ -119,11 +119,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final orgUnitsAsync = ref.read(orgUnitsStreamProvider);
       final allOrgs = orgUnitsAsync.value ?? <OrgUnitModel>[];
       final isOrgUnitsLoading = orgUnitsAsync.isLoading ||
-          !orgUnitsAsync.hasValue ||
-          (user != null &&
-              user.orgUnitId != null &&
-              user.orgUnitId!.isNotEmpty &&
-              allOrgs.isEmpty);
+          !orgUnitsAsync.hasValue;
       final authState = RiverpodAuthState(
         user,
         allOrgs,
