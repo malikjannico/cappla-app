@@ -3157,10 +3157,10 @@ class MockNoOrgUnitPage extends ConsumerWidget {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(32),
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 500),
+            constraints: const BoxConstraints(maxWidth: 600),
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFFFFF),
+               color: const Color(0xFFFFFFFF),
               borderRadius: BorderRadius.circular(28),
               border: Border.all(
                 color: theme.colorScheme.outlineVariant,
@@ -3186,7 +3186,7 @@ class MockNoOrgUnitPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Please contact your administrator to be assigned to an Organization Unit so you can access Planning and Steering dashboards.',
+                  'Please contact your administrator to be assigned to an Organization Unit',
                   key: const Key('no_org_unit_description'),
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(

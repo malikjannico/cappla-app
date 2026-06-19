@@ -17,7 +17,7 @@ class NoOrgUnitView extends ConsumerWidget {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(32.0),
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 500),
+            constraints: const BoxConstraints(maxWidth: 600),
             padding: const EdgeInsets.all(40.0),
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainer,
@@ -61,7 +61,7 @@ class NoOrgUnitView extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Please contact your administrator to be assigned to an Organization Unit so you can access Planning and Steering dashboards.',
+                  'Please contact your administrator to be assigned to an Organization Unit',
                   key: const Key('no_org_unit_description'),
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
