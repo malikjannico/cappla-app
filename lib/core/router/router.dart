@@ -52,6 +52,9 @@ class RouterTransitionNotifier extends ChangeNotifier {
     ref.listen<OrgUnitModel?>(userOwnedOrgUnitProvider, (previous, next) {
       notifyListeners();
     });
+    ref.listen(orgUnitsStreamProvider, (previous, next) {
+      notifyListeners();
+    });
   }
 }
 
