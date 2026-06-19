@@ -1,0 +1,104 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper to get user record
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.token.email.lower())).data;
+    }
+    
+    // Helper to check if authenticated user is active Administrator
+    function isAdmin() {
+      return request.auth != null 
+        && request.auth.token.email != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.token.email.lower()))
+        && getUserData().role == 'Administrator'
+        && getUserData().status == 'Active';
+    }
+
+    // Helper to check if authenticated user is active User
+    function isActiveUser() {
+      return request.auth != null 
+        && request.auth.token.email != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.token.email.lower()))
+        && getUserData().status == 'Active';
+    }
+
+    match /users/{email} {
+      // Allow get for authenticated users to check their profiles
+      allow get: if request.auth != null;
+      // Allow list only for authenticated active users
+      allow list: if isActiveUser();
+      
+      // Allow create only for admins, or if a new user creates their own profile with standard role/status
+      allow create: if request.auth != null && (
+        isAdmin() || (
+          email.lower() == request.auth.token.email.lower() &&
+          request.resource.data.role == 'User' &&
+          request.resource.data.status == 'Inactive'
+        )
+      );
+
+      // Allow update for admins, or if a user is updating their own profile (with immutable fields protected)
+      allow update: if request.auth != null && (
+        isAdmin() || (
+          email.lower() == request.auth.token.email.lower() &&
+          request.resource.data.id == resource.data.id &&
+          request.resource.data.email.lower() == resource.data.email.lower() &&
+          request.resource.data.role == resource.data.role &&
+          request.resource.data.status == resource.data.status &&
+          request.resource.data.orgUnitId == resource.data.orgUnitId &&
+          request.resource.data.createdBy == resource.data.createdBy &&
+          request.resource.data.createdAt == resource.data.createdAt
+        )
+      );
+
+      // Allow delete only for admins
+      allow delete: if isAdmin();
+    }
+
+    match /orgUnits/{orgUnitId} {
+      allow read: if isActiveUser();
+      allow write: if isAdmin();
+    }
+
+    match /categories/{categoryId} {
+      allow read: if isActiveUser();
+      allow write: if isAdmin();
+    }
+
+    match /activityGroups/{groupId} {
+      allow read: if isActiveUser();
+      allow write: if isAdmin();
+    }
+
+    match /activities/{activityId} {
+      allow read: if isActiveUser();
+      allow write: if isAdmin();
+    }
+
+    match /userCapacities/{capacityId} {
+      allow read: if isActiveUser();
+      allow create, update: if isActiveUser() && (isAdmin() || request.resource.data.userEmail.lower() == request.auth.token.email.lower());
+      allow delete: if isActiveUser() && (isAdmin() || resource.data.userEmail.lower() == request.auth.token.email.lower());
+    }
+
+    match /planningDemands/{demandId} {
+      allow read: if isActiveUser();
+      allow create, update: if isActiveUser() && (isAdmin() || request.resource.data.orgUnitId == getUserData().orgUnitId);
+      allow delete: if isActiveUser() && (isAdmin() || resource.data.orgUnitId == getUserData().orgUnitId);
+    }
+
+    match /planningAllocations/{allocationId} {
+      allow read: if isActiveUser();
+      allow create, update: if isActiveUser() && (isAdmin() || request.resource.data.orgUnitId == getUserData().orgUnitId);
+      allow delete: if isActiveUser() && (isAdmin() || resource.data.orgUnitId == getUserData().orgUnitId);
+    }
+
+    match /locks/{lockId} {
+      allow read: if isActiveUser();
+      allow create, update: if isActiveUser() && (isAdmin() || request.resource.data.userEmail.lower() == request.auth.token.email.lower());
+      allow delete: if isActiveUser() && (isAdmin() || resource.data.userEmail.lower() == request.auth.token.email.lower());
+    }
+  }
+}

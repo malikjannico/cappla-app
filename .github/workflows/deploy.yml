@@ -1,0 +1,59 @@
+name: Deploy to GCP Dev Environment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Build, Verify, and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java (for Firebase Tools / Emulators if needed)
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Firebase CLI and Functions Dependencies
+        run: |
+          npm install -g firebase-tools
+          cd functions && npm install
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Flutter Dependencies
+        run: flutter pub get
+
+      - name: Run Flutter Analyze
+        run: flutter analyze
+
+      - name: Run Flutter Tests
+        run: flutter test
+
+      - name: Build Flutter Web for Dev
+        run: flutter build web -t lib/main_dev.dart --release --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
+
+      - name: Authenticate with Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Deploy to Firebase Hosting and Functions
+        run: |
+          firebase deploy --only hosting,functions --project cappla-app

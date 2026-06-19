@@ -1,0 +1,9 @@
+{
+  "name": "cappla-provisioning-scripts",
+  "version": "1.0.0",
+  "description": "Deployment and provisioning scripts for Cappla",
+  "main": "provision_admin.js",
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}
