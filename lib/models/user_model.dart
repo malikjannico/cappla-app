@@ -71,21 +71,33 @@ class UserModel {
     'lastModifiedAt': lastModifiedAt.toIso8601String(),
   };
 
-  factory UserModel.fromMap(Map<String, dynamic> map) => UserModel(
-    id: map['id'],
-    fullName: map['fullName'],
-    email: map['email'],
-    title: map['title'],
-    orgUnitId: map['orgUnitId'],
-    status: map['status'],
-    role: map['role'],
-    createdBy: map['createdBy'],
-    createdAt: map['createdAt'] != null
-        ? DateTime.parse(map['createdAt'])
-        : null,
-    lastModifiedBy: map['lastModifiedBy'],
-    lastModifiedAt: map['lastModifiedAt'] != null
-        ? DateTime.parse(map['lastModifiedAt'])
-        : null,
-  );
+  factory UserModel.fromMap(Map<String, dynamic> map) {
+    DateTime? parseDate(dynamic val) {
+      if (val == null) return null;
+      if (val is String) return DateTime.parse(val);
+      try {
+        return (val as dynamic).toDate();
+      } catch (_) {
+        try {
+          return DateTime.parse(val.toString());
+        } catch (_) {
+          return null;
+        }
+      }
+    }
+
+    return UserModel(
+      id: map['id'],
+      fullName: map['fullName'],
+      email: map['email'],
+      title: map['title'],
+      orgUnitId: map['orgUnitId'],
+      status: map['status'],
+      role: map['role'],
+      createdBy: map['createdBy'],
+      createdAt: parseDate(map['createdAt']),
+      lastModifiedBy: map['lastModifiedBy'],
+      lastModifiedAt: parseDate(map['lastModifiedAt']),
+    );
+  }
 }

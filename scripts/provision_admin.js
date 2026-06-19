@@ -75,8 +75,8 @@ async function provisionAdmin() {
       status: 'Active',
       role: 'Administrator',
       orgUnitId: orgUnitId,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      lastModifiedAt: admin.firestore.FieldValue.serverTimestamp()
+      createdAt: new Date().toISOString(),
+      lastModifiedAt: new Date().toISOString()
     };
 
     await userDocRef.set(userData, { merge: true });
