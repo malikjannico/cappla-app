@@ -40,7 +40,7 @@ async function sendMail(to, subject, html) {
 }
 
 // 1. Triggered when a new document is written to /passwordResetRequests/{email}
-exports.onRequestResetCode = functions.firestore
+exports.onRequestResetCode = functions.region('europe-west3').firestore
   .document('passwordResetRequests/{email}')
   .onCreate(async (snap, context) => {
     const email = context.params.email.toLowerCase().trim();
@@ -98,7 +98,7 @@ exports.onRequestResetCode = functions.firestore
   });
 
 // 2. Triggered when a new document is written to /passwordResetVerifications/{email}
-exports.onCheckResetCode = functions.firestore
+exports.onCheckResetCode = functions.region('europe-west3').firestore
   .document('passwordResetVerifications/{email}')
   .onCreate(async (snap, context) => {
     const email = context.params.email.toLowerCase().trim();
@@ -158,7 +158,7 @@ exports.onCheckResetCode = functions.firestore
   });
 
 // 3. Triggered when a new document is written to /passwordResetSubmissions/{email}
-exports.onVerifyResetCode = functions.firestore
+exports.onVerifyResetCode = functions.region('europe-west3').firestore
   .document('passwordResetSubmissions/{email}')
   .onCreate(async (snap, context) => {
     const email = context.params.email.toLowerCase().trim();
@@ -241,7 +241,7 @@ exports.onVerifyResetCode = functions.firestore
   });
 
 // 4. Triggered when a new document is written to /activationRequests/{email}
-exports.onSendActivationEmail = functions.firestore
+exports.onSendActivationEmail = functions.region('europe-west3').firestore
   .document('activationRequests/{email}')
   .onCreate(async (snap, context) => {
     const email = context.params.email.toLowerCase().trim();

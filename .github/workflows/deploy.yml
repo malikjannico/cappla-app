@@ -26,7 +26,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install Firebase CLI and Functions Dependencies
         run: |
@@ -59,4 +59,4 @@ jobs:
 
       - name: Deploy to Firebase Hosting and Functions
         run: |
-          firebase deploy --only hosting,functions --project cappla-app
+          firebase deploy --only hosting,functions --project cappla-app --force
