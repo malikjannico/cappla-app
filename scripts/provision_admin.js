@@ -82,6 +82,35 @@ async function provisionAdmin() {
     await userDocRef.set(userData, { merge: true });
     console.log(`Successfully provisioned Firestore profile document at users/${email} with role: Administrator`);
 
+    // 3. Create default standard capacity row for the user in userCapacities
+    const capacityDocId = `standard_${email}`;
+    const capacityDocRef = db.collection('userCapacities').doc(capacityDocId);
+    const capacityDoc = await capacityDocRef.get();
+    if (!capacityDoc.exists) {
+      const defaultStandard = {
+        id: capacityDocId,
+        userEmail: email,
+        type: 'Standard',
+        startDate: null,
+        endDate: null,
+        monday: 8.0,
+        tuesday: 8.0,
+        wednesday: 8.0,
+        thursday: 8.0,
+        friday: 8.0,
+        saturday: 0.0,
+        sunday: 0.0,
+        createdBy: 'system',
+        createdAt: new Date().toISOString(),
+        lastModifiedBy: 'system',
+        lastModifiedAt: new Date().toISOString()
+      };
+      await capacityDocRef.set(defaultStandard);
+      console.log(`Successfully created default standard capacity record for ${email}`);
+    } else {
+      console.log(`Standard capacity document already exists for ${email}`);
+    }
+
     console.log("Provisioning complete!");
     process.exit(0);
   } catch (err) {
