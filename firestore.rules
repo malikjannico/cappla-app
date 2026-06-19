@@ -100,5 +100,32 @@ service cloud.firestore {
       allow create, update: if isActiveUser() && (isAdmin() || request.resource.data.userEmail.lower() == request.auth.token.email.lower());
       allow delete: if isActiveUser() && (isAdmin() || resource.data.userEmail.lower() == request.auth.token.email.lower());
     }
+
+    match /passwordResetRequests/{email} {
+      allow get, delete: if true;
+      allow create, update: if email.size() < 128
+        && request.resource.data.status == 'requested'
+        && request.resource.data.createdAt != null;
+    }
+
+    match /passwordResetVerifications/{email} {
+      allow get, delete: if true;
+      allow create, update: if email.size() < 128
+        && request.resource.data.status == 'requested'
+        && request.resource.data.code is string
+        && request.resource.data.code.size() < 20
+        && request.resource.data.createdAt != null;
+    }
+
+    match /passwordResetSubmissions/{email} {
+      allow get, delete: if true;
+      allow create, update: if email.size() < 128
+        && request.resource.data.status == 'requested'
+        && request.resource.data.code is string
+        && request.resource.data.code.size() < 20
+        && request.resource.data.newPassword is string
+        && request.resource.data.newPassword.size() < 128
+        && request.resource.data.createdAt != null;
+    }
   }
 }
