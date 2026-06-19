@@ -57,6 +57,12 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
+      - name: Create Functions Environment Config
+        run: |
+          echo "MAILGUN_API_KEY=${{ secrets.MAILGUN_API_KEY }}" > functions/.env
+          echo "MAILGUN_DOMAIN=${{ secrets.MAILGUN_DOMAIN }}" >> functions/.env
+          echo "MAILGUN_BASE_URL=${{ secrets.MAILGUN_BASE_URL }}" >> functions/.env
+
       - name: Deploy to Firebase Hosting and Functions
         run: |
           firebase deploy --only hosting,functions --project cappla-app --force
