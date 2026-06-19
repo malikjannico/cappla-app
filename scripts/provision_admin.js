@@ -50,18 +50,18 @@ async function provisionAdmin() {
           disabled: false
         });
         console.log(`Created new passwordless Firebase Auth user.`);
-
-        // Write activation request to trigger the activation email function
-        const baseUrl = process.env.BASE_URL || 'https://cappla-app.web.app';
-        await db.collection('activationRequests').doc(email).set({
-          baseUrl: baseUrl,
-          createdAt: admin.firestore.FieldValue.serverTimestamp()
-        });
-        console.log(`Successfully triggered activation email request in Firestore for ${email} with baseUrl: ${baseUrl}`);
       } else {
         throw error;
       }
     }
+
+    // Write activation request to trigger the activation email function
+    const baseUrl = process.env.BASE_URL || 'https://cappla-app.web.app';
+    await db.collection('activationRequests').doc(email).set({
+      baseUrl: baseUrl,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    console.log(`Successfully triggered activation email request in Firestore for ${email} with baseUrl: ${baseUrl}`);
 
     // 2. Create or update user profile document in Firestore
     const userDocRef = db.collection('users').doc(email);
