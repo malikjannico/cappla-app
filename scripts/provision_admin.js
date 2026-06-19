@@ -10,9 +10,6 @@
 // For Local Emulator: Set FIREBASE_AUTH_EMULATOR_HOST="127.0.0.1:9099" and FIRESTORE_EMULATOR_HOST="127.0.0.1:8080"
 
 const admin = require('firebase-admin');
-const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
 
 // Ensure command-line arguments are provided
 const args = process.argv.slice(2);
@@ -35,37 +32,6 @@ admin.initializeApp({
 const db = admin.firestore();
 const auth = admin.auth();
 
-// Generate a cryptographically secure random password
-function generateSecurePassword() {
-  const lowercase = 'abcdefghijklmnopqrstuvwxyz';
-  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const numbers = '0123456789';
-  const specials = '!@#$%^&*()_+~`|}{[]:;?><,./-=';
-  const all = lowercase + uppercase + numbers + specials;
-
-  let password = '';
-  // Ensure we include at least one character from each class
-  password += lowercase[crypto.randomInt(0, lowercase.length)];
-  password += uppercase[crypto.randomInt(0, uppercase.length)];
-  password += numbers[crypto.randomInt(0, numbers.length)];
-  password += specials[crypto.randomInt(0, specials.length)];
-
-  // Fill the rest up to 16 characters
-  for (let i = 0; i < 12; i++) {
-    password += all[crypto.randomInt(0, all.length)];
-  }
-
-  // Shuffle using Fisher-Yates
-  const arr = password.split('');
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = crypto.randomInt(0, i + 1);
-    const temp = arr[i];
-    arr[i] = arr[j];
-    arr[j] = temp;
-  }
-  return arr.join('');
-}
-
 async function provisionAdmin() {
   console.log(`Attempting to provision administrator: ${fullName} (${email})`);
 
@@ -77,31 +43,21 @@ async function provisionAdmin() {
       console.log(`User already exists in Firebase Authentication (UID: ${userRecord.uid})`);
     } catch (error) {
       if (error.code === 'auth/user-not-found') {
-        // Get password from environment variable or generate a secure temporary one
-        let passwordToUse = process.env.ADMIN_PASSWORD;
-        let generated = false;
-        if (!passwordToUse) {
-          passwordToUse = generateSecurePassword();
-          generated = true;
-        }
-
         userRecord = await auth.createUser({
           email: email,
           emailVerified: true,
           displayName: fullName,
-          password: passwordToUse,
           disabled: false
         });
-        console.log(`Created new Firebase Auth user.`);
+        console.log(`Created new passwordless Firebase Auth user.`);
 
-        if (generated) {
-          const envPath = path.join(__dirname, '..', '.env.admin');
-          fs.writeFileSync(envPath, `ADMIN_PASSWORD=${passwordToUse}\n`, 'utf8');
-          console.log(`Temporary password written to: ${envPath}`);
-          console.log(`Please change it immediately and delete the file after use.`);
-        } else {
-          console.log(`Using administrator password from ADMIN_PASSWORD environment variable.`);
-        }
+        // Write activation request to trigger the activation email function
+        const baseUrl = process.env.BASE_URL || 'https://cappla-app.web.app';
+        await db.collection('activationRequests').doc(email).set({
+          baseUrl: baseUrl,
+          createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        console.log(`Successfully triggered activation email request in Firestore for ${email} with baseUrl: ${baseUrl}`);
       } else {
         throw error;
       }
