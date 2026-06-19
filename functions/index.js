@@ -1,4 +1,4 @@
-const functions = require('firebase-functions');
+const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
 
@@ -6,8 +6,8 @@ admin.initializeApp();
 
 const db = admin.firestore();
 
-const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY || (functions.config().mailgun ? functions.config().mailgun.key : null);
-const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN || (functions.config().mailgun ? functions.config().mailgun.domain : 'sandbox6ae2ae47276c4569aaf5e46d2046f203.mailgun.org');
+const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
+const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN || 'sandbox6ae2ae47276c4569aaf5e46d2046f203.mailgun.org';
 const MAILGUN_BASE_URL = process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net';
 const FROM_EMAIL = `Cappla App <postmaster@${MAILGUN_DOMAIN}>`;
 

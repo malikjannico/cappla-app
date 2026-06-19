@@ -11,6 +11,8 @@
 
 const admin = require('firebase-admin');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 // Ensure command-line arguments are provided
 const args = process.argv.slice(2);
@@ -75,17 +77,31 @@ async function provisionAdmin() {
       console.log(`User already exists in Firebase Authentication (UID: ${userRecord.uid})`);
     } catch (error) {
       if (error.code === 'auth/user-not-found') {
-        // Generate a cryptographically secure random temp password
-        const tempPassword = generateSecurePassword();
+        // Get password from environment variable or generate a secure temporary one
+        let passwordToUse = process.env.ADMIN_PASSWORD;
+        let generated = false;
+        if (!passwordToUse) {
+          passwordToUse = generateSecurePassword();
+          generated = true;
+        }
+
         userRecord = await auth.createUser({
           email: email,
           emailVerified: true,
           displayName: fullName,
-          password: tempPassword,
+          password: passwordToUse,
           disabled: false
         });
         console.log(`Created new Firebase Auth user.`);
-        console.log(`Temporary password (please change immediately): ${tempPassword}`);
+
+        if (generated) {
+          const envPath = path.join(__dirname, '..', '.env.admin');
+          fs.writeFileSync(envPath, `ADMIN_PASSWORD=${passwordToUse}\n`, 'utf8');
+          console.log(`Temporary password written to: ${envPath}`);
+          console.log(`Please change it immediately and delete the file after use.`);
+        } else {
+          console.log(`Using administrator password from ADMIN_PASSWORD environment variable.`);
+        }
       } else {
         throw error;
       }
