@@ -363,20 +363,22 @@ class _CategoriesListViewState extends ConsumerState<CategoriesListView> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  FilledButton(
-                                    key: Key(
-                                      'category_row_edit_button_${cat.id}',
+                                 if (isOwner) ...[
+                                    FilledButton(
+                                      key: Key(
+                                        'category_row_edit_button_${cat.id}',
+                                      ),
+                                      onPressed: () {
+                                        context.go(
+                                          RouterPaths.settingsCategoriesEditPath(
+                                            cat.id,
+                                          ),
+                                        );
+                                      },
+                                      child: const Text('Edit'),
                                     ),
-                                    onPressed: () {
-                                      context.go(
-                                        RouterPaths.settingsCategoriesEditPath(
-                                          cat.id,
-                                        ),
-                                      );
-                                    },
-                                    child: const Text('Edit'),
-                                  ),
-                                  const SizedBox(width: 8),
+                                    const SizedBox(width: 8),
+                                  ],
                                   Directionality(
                                     textDirection: TextDirection.rtl,
                                     child: MenuAnchor(
@@ -469,6 +471,7 @@ class _CategoriesListViewState extends ConsumerState<CategoriesListView> {
                                             ),
                                           ),
                                         ),
+                                       if (isOwner)
                                         Directionality(
                                           textDirection: TextDirection.ltr,
                                           child: MenuItemButton(

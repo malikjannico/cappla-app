@@ -65,21 +65,33 @@ class CategoryModel {
     'order': order,
   };
 
-  factory CategoryModel.fromMap(Map<String, dynamic> map) => CategoryModel(
-    id: map['id'],
-    name: map['name'],
-    ownerOrgUnitId: map['ownerOrgUnitId'],
-    sharedOrgUnitIds: List<String>.from(map['sharedOrgUnitIds'] ?? []),
-    appliedOrgUnitIds: List<String>.from(map['appliedOrgUnitIds'] ?? []),
-    statusMap: Map<String, String>.from(map['statusMap'] ?? {}),
-    createdBy: map['createdBy'] ?? '',
-    createdAt: map['createdAt'] != null
-        ? DateTime.parse(map['createdAt'])
-        : DateTime.fromMillisecondsSinceEpoch(0),
-    lastModifiedBy: map['lastModifiedBy'] ?? '',
-    lastModifiedAt: map['lastModifiedAt'] != null
-        ? DateTime.parse(map['lastModifiedAt'])
-        : DateTime.fromMillisecondsSinceEpoch(0),
-    order: map['order'] ?? 0,
-  );
+  factory CategoryModel.fromMap(Map<String, dynamic> map) {
+    DateTime? parseDate(dynamic val) {
+      if (val == null) return null;
+      if (val is String) return DateTime.parse(val);
+      try {
+        return (val as dynamic).toDate();
+      } catch (_) {
+        try {
+          return DateTime.parse(val.toString());
+        } catch (_) {
+          return null;
+        }
+      }
+    }
+
+    return CategoryModel(
+      id: map['id'],
+      name: map['name'],
+      ownerOrgUnitId: map['ownerOrgUnitId'],
+      sharedOrgUnitIds: List<String>.from(map['sharedOrgUnitIds'] ?? []),
+      appliedOrgUnitIds: List<String>.from(map['appliedOrgUnitIds'] ?? []),
+      statusMap: Map<String, String>.from(map['statusMap'] ?? {}),
+      createdBy: map['createdBy'] ?? '',
+      createdAt: parseDate(map['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      lastModifiedBy: map['lastModifiedBy'] ?? '',
+      lastModifiedAt: parseDate(map['lastModifiedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      order: map['order'] ?? 0,
+    );
+  }
 }

@@ -78,7 +78,7 @@ class _CategoryEditViewState extends ConsumerState<CategoryEditView> {
                   ),
                   Text(
                     ' / ${category.name} / Edit',
-                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                    style: TextStyle(color: theme.colorScheme.primary),
                   ),
                 ],
               ),
@@ -165,7 +165,7 @@ class _CategoryEditViewState extends ConsumerState<CategoryEditView> {
                           'Status',
                           key: const Key('category_edit_status_label'),
                           style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                            color: theme.colorScheme.primary,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -251,9 +251,7 @@ class _BreadcrumbLinkState extends State<BreadcrumbLink> {
           widget.label,
           key: widget.linkKey,
           style: TextStyle(
-            color: _isHovered
-                ? theme.colorScheme.primary
-                : theme.colorScheme.onSurfaceVariant,
+            color: theme.colorScheme.primary,
             decoration: _isHovered
                 ? TextDecoration.underline
                 : TextDecoration.none,

@@ -97,29 +97,38 @@ class UserCapacityModel {
     'lastModifiedAt': lastModifiedAt.toIso8601String(),
   };
 
-  factory UserCapacityModel.fromMap(Map<String, dynamic> map) =>
-      UserCapacityModel(
-        id: map['id'],
-        userEmail: map['userEmail'],
-        type: map['type'],
-        startDate: map['startDate'] != null
-            ? DateTime.parse(map['startDate'])
-            : null,
-        endDate: map['endDate'] != null ? DateTime.parse(map['endDate']) : null,
-        monday: (map['monday'] as num).toDouble(),
-        tuesday: (map['tuesday'] as num).toDouble(),
-        wednesday: (map['wednesday'] as num).toDouble(),
-        thursday: (map['thursday'] as num).toDouble(),
-        friday: (map['friday'] as num).toDouble(),
-        saturday: (map['saturday'] as num).toDouble(),
-        sunday: (map['sunday'] as num).toDouble(),
-        createdBy: map['createdBy'] ?? 'system',
-        createdAt: map['createdAt'] != null
-            ? DateTime.parse(map['createdAt'])
-            : DateTime.now(),
-        lastModifiedBy: map['lastModifiedBy'] ?? 'system',
-        lastModifiedAt: map['lastModifiedAt'] != null
-            ? DateTime.parse(map['lastModifiedAt'])
-            : DateTime.now(),
-      );
+  factory UserCapacityModel.fromMap(Map<String, dynamic> map) {
+    DateTime? parseDate(dynamic val) {
+      if (val == null) return null;
+      if (val is String) return DateTime.parse(val);
+      try {
+        return (val as dynamic).toDate();
+      } catch (_) {
+        try {
+          return DateTime.parse(val.toString());
+        } catch (_) {
+          return null;
+        }
+      }
+    }
+
+    return UserCapacityModel(
+      id: map['id'],
+      userEmail: map['userEmail'],
+      type: map['type'],
+      startDate: parseDate(map['startDate']),
+      endDate: parseDate(map['endDate']),
+      monday: (map['monday'] as num).toDouble(),
+      tuesday: (map['tuesday'] as num).toDouble(),
+      wednesday: (map['wednesday'] as num).toDouble(),
+      thursday: (map['thursday'] as num).toDouble(),
+      friday: (map['friday'] as num).toDouble(),
+      saturday: (map['saturday'] as num).toDouble(),
+      sunday: (map['sunday'] as num).toDouble(),
+      createdBy: map['createdBy'] ?? 'system',
+      createdAt: parseDate(map['createdAt']) ?? DateTime.now(),
+      lastModifiedBy: map['lastModifiedBy'] ?? 'system',
+      lastModifiedAt: parseDate(map['lastModifiedAt']) ?? DateTime.now(),
+    );
+  }
 }

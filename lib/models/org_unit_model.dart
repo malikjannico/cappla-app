@@ -74,22 +74,34 @@ class OrgUnitModel {
     'lastModifiedAt': lastModifiedAt.toIso8601String(),
   };
 
-  factory OrgUnitModel.fromMap(Map<String, dynamic> map) => OrgUnitModel(
-    id: map['id'],
-    name: map['name'],
-    abbreviation: map['abbreviation'],
-    headOfEmail: map['headOfEmail'],
-    type: map['type'],
-    parentId: map['parentId'],
-    childIds: List<String>.from(map['childIds'] ?? []),
-    status: map['status'],
-    createdBy: map['createdBy'],
-    createdAt: map['createdAt'] != null
-        ? DateTime.parse(map['createdAt'])
-        : null,
-    lastModifiedBy: map['lastModifiedBy'],
-    lastModifiedAt: map['lastModifiedAt'] != null
-        ? DateTime.parse(map['lastModifiedAt'])
-        : null,
-  );
+  factory OrgUnitModel.fromMap(Map<String, dynamic> map) {
+    DateTime? parseDate(dynamic val) {
+      if (val == null) return null;
+      if (val is String) return DateTime.parse(val);
+      try {
+        return (val as dynamic).toDate();
+      } catch (_) {
+        try {
+          return DateTime.parse(val.toString());
+        } catch (_) {
+          return null;
+        }
+      }
+    }
+
+    return OrgUnitModel(
+      id: map['id'],
+      name: map['name'],
+      abbreviation: map['abbreviation'],
+      headOfEmail: map['headOfEmail'],
+      type: map['type'],
+      parentId: map['parentId'],
+      childIds: List<String>.from(map['childIds'] ?? []),
+      status: map['status'],
+      createdBy: map['createdBy'],
+      createdAt: parseDate(map['createdAt']),
+      lastModifiedBy: map['lastModifiedBy'],
+      lastModifiedAt: parseDate(map['lastModifiedAt']),
+    );
+  }
 }

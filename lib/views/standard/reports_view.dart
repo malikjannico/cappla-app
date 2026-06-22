@@ -609,6 +609,7 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
                   key: const Key('reports_title_header'),
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
                   ),
                 ),
                  M3SegmentedButton<String>(
@@ -856,9 +857,10 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
       children: [
         Text(
           title,
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
         ),
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -961,9 +963,16 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
                 label: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(selectedYear.toString()),
+                    Text(
+                      selectedYear.toString(),
+                      style: const TextStyle(color: Colors.white),
+                    ),
                     const SizedBox(width: 4),
-                    const Icon(Icons.arrow_drop_down, size: 18),
+                    const Icon(
+                      Icons.arrow_drop_down,
+                      size: 18,
+                      color: Colors.white,
+                    ),
                   ],
                 ),
                 selected: true,
@@ -1062,9 +1071,18 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
             label: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(displayLabel),
+                Text(
+                  displayLabel,
+                  style: TextStyle(
+                    color: !isAllSelected ? Colors.white : null,
+                  ),
+                ),
                 const SizedBox(width: 4),
-                const Icon(Icons.arrow_drop_down, size: 18),
+                Icon(
+                  Icons.arrow_drop_down,
+                  size: 18,
+                  color: !isAllSelected ? Colors.white : null,
+                ),
               ],
             ),
             selected: !isAllSelected,
@@ -1347,10 +1365,6 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerLowest,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: theme.colorScheme.outlineVariant,
-                width: 0.5,
-              ),
             ),
             child: Text(
               'No data matching the selected filters.',
@@ -1374,10 +1388,6 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
               decoration: BoxDecoration(
                 color: theme.colorScheme.surfaceContainerLowest,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: theme.colorScheme.outlineVariant,
-                  width: 0.5,
-                ),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
@@ -1391,18 +1401,18 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
                     // Grand Total Section (only if displayOUs.length > 1)
                     if (displayOUs.length > 1) ...[
                       // Group Header Row
-                      Container(
+                       Container(
                         width: fixedColWidth + monthWidth * 12 + sumWidth,
                         height: 40,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         alignment: Alignment.centerLeft,
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainer,
+                          color: const Color(0xFFCCE8F6),
                           border: Border(
                             top: BorderSide.none,
                             bottom: BorderSide(
-                              color: theme.colorScheme.outlineVariant,
-                              width: 0.5,
+                              color: theme.colorScheme.primary,
+                              width: 1.5,
                             ),
                           ),
                         ),
@@ -1419,8 +1429,8 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
                         theme: theme,
                         title: 'Total Available Capacity',
                         values: grandAvailableMonthly,
-                        backgroundColor: theme.colorScheme.tertiaryContainer,
-                        textColor: theme.colorScheme.onTertiaryContainer,
+                        backgroundColor: theme.colorScheme.tertiary,
+                        textColor: theme.colorScheme.onTertiary,
                         isBold: true,
                         monthWidth: monthWidth,
                         sumWidth: sumWidth,
@@ -1433,8 +1443,8 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
                         theme: theme,
                         title: 'Total Planned Capacity',
                         values: grandPlannedMonthly,
-                        backgroundColor: theme.colorScheme.primaryContainer,
-                        textColor: theme.colorScheme.onPrimaryContainer,
+                        backgroundColor: theme.colorScheme.primary,
+                        textColor: theme.colorScheme.onPrimary,
                         isBold: true,
                         monthWidth: monthWidth,
                         sumWidth: sumWidth,
@@ -1488,79 +1498,68 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
       'November',
       'December',
     ];
-    return Container(
-      height: 48,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainer,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(12),
-          topRight: Radius.circular(12),
-        ),
-        border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outlineVariant,
-            width: 0.5,
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(12),
+        topRight: Radius.circular(12),
+      ),
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            bottom: BorderSide(
+              color: theme.colorScheme.primary,
+              width: 2.0,
+            ),
           ),
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 250,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            alignment: Alignment.centerLeft,
-            decoration: BoxDecoration(
-              border: Border(
-                right: BorderSide(
-                  color: theme.colorScheme.outlineVariant,
-                  width: 0.5,
+        child: Row(
+          children: [
+            Container(
+              width: 250,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              alignment: Alignment.centerLeft,
+              child: Text(
+                tableType == 'employee'
+                    ? 'Employees'
+                    : (tableType == 'category'
+                          ? 'Categories'
+                          : 'Activity Groups'),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
                 ),
               ),
             ),
-            child: Text(
-              tableType == 'employee'
-                  ? 'Employees'
-                  : (tableType == 'category'
-                        ? 'Categories'
-                        : 'Activity Groups'),
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          ...months.map(
-            (m) => Container(
-              width: monthWidth,
-              alignment: Alignment.center,
-              padding: EdgeInsets.zero,
-              decoration: BoxDecoration(
-                border: Border(
-                  right: BorderSide(
-                    color: theme.colorScheme.outlineVariant,
-                    width: 0.5,
+            ...months.map(
+              (m) => Container(
+                width: monthWidth,
+                alignment: Alignment.center,
+                padding: EdgeInsets.zero,
+                child: Text(
+                  m.substring(0, 3),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
                   ),
                 ),
               ),
+            ),
+            Container(
+              width: sumWidth,
+              alignment: Alignment.center,
+              padding: EdgeInsets.zero,
               child: Text(
-                m.substring(0, 3),
+                'Sum',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
                 ),
               ),
             ),
-          ),
-          Container(
-            width: sumWidth,
-            alignment: Alignment.center,
-            padding: EdgeInsets.zero,
-            child: Text(
-              'Sum',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1708,11 +1707,11 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           alignment: Alignment.centerLeft,
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainer.withValues(alpha: 0.4),
+            color: const Color(0xFFCCE8F6),
             border: Border(
               bottom: BorderSide(
-                color: theme.colorScheme.outlineVariant,
-                width: 0.5,
+                color: theme.colorScheme.primary,
+                width: 1.5,
               ),
             ),
           ),
@@ -1730,8 +1729,8 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
           theme: theme,
           title: 'Available Capacity',
           values: availableMonthly,
-          backgroundColor: theme.colorScheme.tertiaryContainer,
-          textColor: theme.colorScheme.onTertiaryContainer,
+          backgroundColor: theme.colorScheme.tertiary,
+          textColor: theme.colorScheme.onTertiary,
           isBold: true,
           monthWidth: monthWidth,
           sumWidth: sumWidth,
@@ -1761,8 +1760,8 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
           theme: theme,
           title: 'Planned Capacity',
           values: plannedMonthly,
-          backgroundColor: theme.colorScheme.primaryContainer,
-          textColor: theme.colorScheme.onPrimaryContainer,
+          backgroundColor: theme.colorScheme.primary,
+          textColor: theme.colorScheme.onPrimary,
           isBold: true,
           monthWidth: monthWidth,
           sumWidth: sumWidth,
@@ -1813,6 +1812,21 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
         ? const Color(0xFF81C784)
         : const Color(0xFF2E7D32);
 
+    final bool isWhiteBackground = backgroundColor == null ||
+        backgroundColor == Colors.transparent ||
+        backgroundColor == Colors.white;
+
+    final defaultTextColor = isWhiteBackground
+        ? theme.colorScheme.primary
+        : theme.colorScheme.onSurface;
+
+    final defaultCellTextColor = isWhiteBackground
+        ? theme.colorScheme.primary
+        : theme.colorScheme.onSurfaceVariant;
+
+    final resolvedTextColor = textColor ?? defaultTextColor;
+    final resolvedCellTextColor = textColor ?? defaultCellTextColor;
+
     return Container(
       height: 40,
       decoration: BoxDecoration(
@@ -1820,7 +1834,7 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
         border: Border(
           bottom: isLastRow
               ? BorderSide.none
-              : BorderSide(color: theme.colorScheme.outlineVariant, width: 0.5),
+              : BorderSide(color: theme.colorScheme.primary, width: 0.5),
         ),
       ),
       child: Row(
@@ -1830,14 +1844,6 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
             width: 250,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             alignment: Alignment.centerLeft,
-            decoration: BoxDecoration(
-              border: Border(
-                right: BorderSide(
-                  color: theme.colorScheme.outlineVariant,
-                  width: 0.5,
-                ),
-              ),
-            ),
             child: tooltipMessage != null
                 ? Text.rich(
                     TextSpan(
@@ -1846,7 +1852,7 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
                           text: title,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-                            color: textColor ?? theme.colorScheme.onSurface,
+                            color: resolvedTextColor,
                           ),
                         ),
                         const WidgetSpan(
@@ -1867,8 +1873,10 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
                             child: Icon(
                               Icons.info_outline,
                               size: 14,
-                              color: (textColor ?? theme.colorScheme.onSurface)
-                                  .withValues(alpha: 0.7),
+                              color: (title == 'Planned Capacity' ||
+                                      title == 'Total Planned Capacity')
+                                  ? Colors.white
+                                  : theme.colorScheme.primary,
                             ),
                           ),
                         ),
@@ -1883,7 +1891,7 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-                      color: textColor ?? theme.colorScheme.onSurface,
+                      color: resolvedTextColor,
                     ),
                   ),
           ),
@@ -1898,21 +1906,13 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
                       ? errorColor
                       : (val > 0
                             ? successColor
-                            : theme.colorScheme.onSurfaceVariant))
-                : (textColor ?? theme.colorScheme.onSurfaceVariant);
+                            : resolvedCellTextColor))
+                : resolvedCellTextColor;
 
             return Container(
               width: monthWidth,
               alignment: Alignment.center,
               padding: EdgeInsets.zero,
-              decoration: BoxDecoration(
-                border: Border(
-                  right: BorderSide(
-                    color: theme.colorScheme.outlineVariant,
-                    width: 0.5,
-                  ),
-                ),
-              ),
               child: Text(
                 displayVal,
                 style: theme.textTheme.bodyMedium?.copyWith(
@@ -1938,8 +1938,8 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
                           ? errorColor
                           : (rowSum > 0
                                 ? successColor
-                                : theme.colorScheme.onSurface))
-                    : (textColor ?? theme.colorScheme.onSurface),
+                                : resolvedTextColor))
+                    : resolvedTextColor,
               ),
             ),
           ),

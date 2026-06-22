@@ -12,7 +12,7 @@ class NoOrgUnitView extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
+      backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(32.0),
@@ -20,12 +20,8 @@ class NoOrgUnitView extends ConsumerWidget {
             constraints: const BoxConstraints(maxWidth: 600),
             padding: const EdgeInsets.all(40.0),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainer,
+              color: theme.colorScheme.primary,
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-                width: 1,
-              ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),
@@ -40,13 +36,13 @@ class NoOrgUnitView extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer.withValues(alpha: 0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.domain_disabled,
                     size: 80,
-                    color: theme.colorScheme.primary,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -56,7 +52,7 @@ class NoOrgUnitView extends ConsumerWidget {
                   textAlign: TextAlign.center,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -65,7 +61,7 @@ class NoOrgUnitView extends ConsumerWidget {
                   key: const Key('no_org_unit_description'),
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                    color: Colors.white.withValues(alpha: 0.7),
                     height: 1.5,
                   ),
                 ),
@@ -99,6 +95,8 @@ class NoOrgUnitView extends ConsumerWidget {
                       label: const Text('Logout'),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: Colors.white, width: 1.0),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

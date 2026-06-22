@@ -279,7 +279,7 @@ class _ActivityEditViewState extends ConsumerState<ActivityEditView> {
                     Text(
                       ' / ',
                       style: TextStyle(
-                        color: theme.colorScheme.onSurfaceVariant,
+                        color: theme.colorScheme.primary,
                       ),
                     ),
                     BreadcrumbLink(
@@ -293,7 +293,7 @@ class _ActivityEditViewState extends ConsumerState<ActivityEditView> {
                   ],
                   Text(
                     ' / ${activity.name} / Edit',
-                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                    style: TextStyle(color: theme.colorScheme.primary),
                   ),
                 ],
               ),
@@ -424,7 +424,7 @@ class _ActivityEditViewState extends ConsumerState<ActivityEditView> {
                           'Status',
                           key: const Key('activity_edit_status_label'),
                           style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                            color: theme.colorScheme.primary,
                           ),
                         ),
                         const SizedBox(height: 8),

@@ -350,6 +350,7 @@ class _DashboardsViewState extends ConsumerState<DashboardsView> {
                   key: const Key('dashboard_title_header'),
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
                   ),
                 ),
                 M3SegmentedButton<String>(
@@ -546,9 +547,16 @@ class _DashboardsViewState extends ConsumerState<DashboardsView> {
                 label: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(selectedYear.toString()),
+                    Text(
+                      selectedYear.toString(),
+                      style: const TextStyle(color: Colors.white),
+                    ),
                     const SizedBox(width: 4),
-                    const Icon(Icons.arrow_drop_down, size: 18),
+                    const Icon(
+                      Icons.arrow_drop_down,
+                      size: 18,
+                      color: Colors.white,
+                    ),
                   ],
                 ),
                 selected: true,
@@ -647,9 +655,18 @@ class _DashboardsViewState extends ConsumerState<DashboardsView> {
             label: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(displayLabel),
+                Text(
+                  displayLabel,
+                  style: TextStyle(
+                    color: !isAllSelected ? Colors.white : null,
+                  ),
+                ),
                 const SizedBox(width: 4),
-                const Icon(Icons.arrow_drop_down, size: 18),
+                Icon(
+                  Icons.arrow_drop_down,
+                  size: 18,
+                  color: !isAllSelected ? Colors.white : null,
+                ),
               ],
             ),
             selected: !isAllSelected,
@@ -706,15 +723,13 @@ class _DashboardsViewState extends ConsumerState<DashboardsView> {
         title: 'Planned Capacity',
         value:
             '${totalPlanned.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '')} hrs',
-        color: theme.colorScheme.secondary,
+        color: theme.colorScheme.primary,
         icon: Icons.assignment,
       ),
       _KpiData(
         title: 'Utilization Rate',
         value: '${utilizationRate.toStringAsFixed(1)}%',
-        color: utilizationRate > 100
-            ? theme.colorScheme.error
-            : theme.colorScheme.tertiary,
+        color: theme.colorScheme.primary,
         icon: Icons.trending_up,
       ),
       _KpiData(
@@ -771,7 +786,7 @@ class _DashboardsViewState extends ConsumerState<DashboardsView> {
           Text(
             kpi.title,
             style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+              color: theme.colorScheme.primary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -808,6 +823,7 @@ class _DashboardsViewState extends ConsumerState<DashboardsView> {
             title,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
             ),
           ),
           const SizedBox(height: 20),
@@ -888,6 +904,7 @@ class LineTrendChart extends StatelessWidget {
           label,
           style: theme.textTheme.labelMedium?.copyWith(
             fontWeight: FontWeight.w500,
+            color: theme.colorScheme.primary,
           ),
         ),
       ],
@@ -942,7 +959,7 @@ class _LineChartPainter extends CustomPainter {
         text: TextSpan(
           text: labelVal.toStringAsFixed(0),
           style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+            color: theme.colorScheme.primary,
           ),
         ),
         textDirection: TextDirection.ltr,
@@ -973,7 +990,7 @@ class _LineChartPainter extends CustomPainter {
         text: TextSpan(
           text: months[i],
           style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+            color: theme.colorScheme.primary,
           ),
         ),
         textDirection: TextDirection.ltr,
@@ -1194,7 +1211,7 @@ class _DonutChartPainter extends CustomPainter {
         text: 'Total\n${total.toStringAsFixed(0)}h',
         style: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.bold,
-          color: theme.colorScheme.onSurface,
+          color: theme.colorScheme.primary,
           height: 1.2,
         ),
       ),
@@ -1263,6 +1280,7 @@ class BarComparisonChart extends StatelessWidget {
                     y.toString(),
                     style: theme.textTheme.labelMedium?.copyWith(
                       fontWeight: FontWeight.w500,
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                 ],
@@ -1339,7 +1357,7 @@ class _GroupedBarChartPainter extends CustomPainter {
         text: TextSpan(
           text: labelVal.toStringAsFixed(0),
           style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+            color: theme.colorScheme.primary,
           ),
         ),
         textDirection: TextDirection.ltr,
@@ -1366,7 +1384,7 @@ class _GroupedBarChartPainter extends CustomPainter {
         text: TextSpan(
           text: group.key,
           style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurface,
+            color: theme.colorScheme.primary,
             fontWeight: FontWeight.w500,
           ),
         ),

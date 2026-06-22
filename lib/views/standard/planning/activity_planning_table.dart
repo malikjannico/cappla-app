@@ -770,12 +770,15 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
             child: Center(
               child: Text(
                 months[index].substring(0, 3),
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
             rowKey: 'header',
-            height: 40,
+            height: 48,
           );
         });
 
@@ -846,54 +849,61 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Header Row
-              Container(
-                key: rowKeys[0],
-                height: 40,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainer,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(8),
-                  ),
-                  border: Border.all(
-                    color: theme.colorScheme.outlineVariant,
-                    width: 0.5,
-                  ),
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(8),
                 ),
-                child: Row(
-                  children: [
-                    _buildInteractiveCell(
-                      r: 0,
-                      c: 0,
-                      width: 180,
-                      child: const Padding(
-                        padding: EdgeInsets.only(left: 12.0),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Employees',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                child: Container(
+                  key: rowKeys[0],
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(
+                      bottom: BorderSide(color: theme.colorScheme.primary, width: 2.0),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      _buildInteractiveCell(
+                        r: 0,
+                        c: 0,
+                        width: 180,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 12.0),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Employees',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
                           ),
                         ),
+                        rowKey: 'header',
+                        height: 48,
                       ),
-                      rowKey: 'header',
-                      height: 40,
-                    ),
-                    ...monthHeaderCells,
-                    _buildInteractiveCell(
-                      r: 0,
-                      c: 13,
-                      width: cellWidth,
-                      child: const Center(
-                        child: Text(
-                          'Sum',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
+                      ...monthHeaderCells,
+                      _buildInteractiveCell(
+                        r: 0,
+                        c: 13,
+                        width: cellWidth,
+                        child: Center(
+                          child: Text(
+                            'Sum',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
+                        rowKey: 'header',
+                        height: 48,
                       ),
-                      rowKey: 'header',
-                      height: 40,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
 
@@ -923,8 +933,8 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
                   setState(() {});
                 },
                 rowKey: 'demand_${widget.activity.id}',
-                backgroundColor: theme.colorScheme.tertiaryContainer,
-                textColor: theme.colorScheme.onTertiaryContainer,
+                backgroundColor: theme.colorScheme.tertiary,
+                textColor: theme.colorScheme.onTertiary,
                 isBold: true,
               ),
 
@@ -966,7 +976,7 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
                   },
                   rowKey: allocKey,
                   backgroundColor: Colors.transparent,
-                  textColor: theme.colorScheme.onSurface,
+                  textColor: theme.colorScheme.primary,
                   isBold: false,
                 );
               }),
@@ -1005,8 +1015,8 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
                 }),
                 onChanged: (_, _) {},
                 rowKey: 'sum_${widget.activity.id}',
-                backgroundColor: theme.colorScheme.primaryContainer,
-                textColor: theme.colorScheme.onPrimaryContainer,
+                backgroundColor: theme.colorScheme.primary,
+                textColor: theme.colorScheme.onPrimary,
                 isBold: true,
               ),
 
@@ -1053,7 +1063,7 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
                 onChanged: (_, _) {},
                 rowKey: 'delta_${widget.activity.id}',
                 backgroundColor: Colors.transparent,
-                textColor: theme.colorScheme.onSurface,
+                textColor: theme.colorScheme.primary,
                 isBold: true,
               ),
             ],
@@ -1096,7 +1106,8 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
         _dragFillRange!.contains(r, c) &&
         (!widget.isEditing || _isCellEditable(r, c));
 
-    final baseColor = backgroundColor ?? Colors.transparent;
+    final isHeaderCell = rowKey == 'header';
+    final baseColor = isHeaderCell ? Colors.white : (backgroundColor ?? Colors.transparent);
     final displayColor = isSelected
         ? (backgroundColor != null
               ? Color.alphaBlend(
@@ -1116,8 +1127,9 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
     BoxDecoration cellDeco = BoxDecoration(
       color: displayColor,
       border: Border(
-        right: BorderSide(color: theme.colorScheme.outlineVariant, width: 0.5),
-        bottom: BorderSide(color: theme.colorScheme.outlineVariant, width: 0.5),
+        bottom: isHeaderCell
+            ? BorderSide.none
+            : BorderSide(color: theme.colorScheme.primary, width: 0.5),
       ),
     );
 
@@ -1127,7 +1139,7 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
         width: 1.5,
       );
       final gridBorderSide = BorderSide(
-        color: theme.colorScheme.outlineVariant,
+        color: theme.colorScheme.primary,
         width: 0.5,
       );
       cellDeco = cellDeco.copyWith(
@@ -1135,7 +1147,7 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
           top: r == _dragFillRange!.minRow ? borderSide : BorderSide.none,
           bottom: r == _dragFillRange!.maxRow ? borderSide : gridBorderSide,
           left: c == _dragFillRange!.minCol ? borderSide : BorderSide.none,
-          right: c == _dragFillRange!.maxCol ? borderSide : gridBorderSide,
+          right: c == _dragFillRange!.maxCol ? borderSide : BorderSide.none,
         ),
       );
     } else if (isSelected) {
@@ -1144,7 +1156,7 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
         width: 1.5,
       );
       final gridBorderSide = BorderSide(
-        color: theme.colorScheme.outlineVariant,
+        color: theme.colorScheme.primary,
         width: 0.5,
       );
       cellDeco = cellDeco.copyWith(
@@ -1152,7 +1164,7 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
           top: r == _selectedRange!.minRow ? borderSide : BorderSide.none,
           bottom: r == _selectedRange!.maxRow ? borderSide : gridBorderSide,
           left: c == _selectedRange!.minCol ? borderSide : BorderSide.none,
-          right: c == _selectedRange!.maxCol ? borderSide : gridBorderSide,
+          right: c == _selectedRange!.maxCol ? borderSide : BorderSide.none,
         ),
       );
     }
@@ -1422,6 +1434,7 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
   }) {
     double rowSum = values.fold(0.0, (sum, val) => sum + val);
     final int r = rowIndex;
+    final isDark = theme.brightness == Brightness.dark;
 
     Widget labelWidget;
     if (tooltipMessage != null) {
@@ -1454,7 +1467,7 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
                   Icons.info_outline,
                   size: 14,
                   color:
-                      textColor?.withValues(alpha: 0.7) ??
+                      textColor ??
                       theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                 ),
               ),
@@ -1486,9 +1499,6 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
       height: 48,
       decoration: BoxDecoration(
         color: backgroundColor ?? Colors.transparent,
-        border: Border(
-          left: BorderSide(color: theme.colorScheme.outlineVariant, width: 0.5),
-        ),
       ),
       child: Row(
         children: [
@@ -1560,7 +1570,6 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
                     _cellEditMode == CellEditMode.typingFromDouble);
 
             final isDelta = rowKey.startsWith('delta_');
-            final isDark = theme.brightness == Brightness.dark;
             final errorColor = isDark
                 ? const Color(0xFFE57373)
                 : const Color(0xFFD32F2F);
@@ -1569,12 +1578,7 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
                 : const Color(0xFF2E7D32);
 
             final cellColor = isDelta
-                ? (val < 0
-                      ? errorColor
-                      : (val > 0
-                            ? successColor
-                            : (textColor ??
-                                  theme.colorScheme.onSurfaceVariant)))
+                ? (val < 0 ? errorColor : successColor)
                 : (textColor ?? theme.colorScheme.onSurfaceVariant);
 
             final cellStyle = TextStyle(
@@ -1659,8 +1663,10 @@ class ActivityPlanningTableState extends State<ActivityPlanningTable> {
                     : rowSum.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), ''),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: (rowKey.startsWith('delta_') && rowSum < 0)
-                      ? theme.colorScheme.error
+                  color: rowKey.startsWith('delta_')
+                      ? (rowSum < 0
+                            ? (isDark ? const Color(0xFFE57373) : const Color(0xFFD32F2F))
+                            : (isDark ? const Color(0xFF81C784) : const Color(0xFF2E7D32)))
                       : textColor,
                   fontSize: 14,
                 ),

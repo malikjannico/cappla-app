@@ -169,7 +169,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF5FAFB),
+      backgroundColor: const Color(0xFFFFFFFF),
       appBar: AppBar(
         title: Text(
           'Cappla',
@@ -193,6 +193,9 @@ class _LoginViewState extends ConsumerState<LoginView> {
         child: SingleChildScrollView(
           child: Card(
             color: const Color(0xFFFFFFFF),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             margin: const EdgeInsets.all(24),
             child: Container(
               width: 400,
@@ -214,7 +217,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                         ? 'Enter your password to log in.'
                         : 'Enter your email to log in.',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                      color: theme.colorScheme.primary,
                     ),
                     textAlign: TextAlign.left,
                   ),
@@ -270,7 +273,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           overlayColor: Colors.transparent,
-                          foregroundColor: theme.colorScheme.onSurfaceVariant,
+                          foregroundColor: theme.colorScheme.primary,
                         ),
                         icon: const Icon(Icons.arrow_back, size: 16),
                         label: Text(_emailController.text),

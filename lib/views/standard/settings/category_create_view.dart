@@ -247,9 +247,7 @@ class _BreadcrumbLinkState extends State<BreadcrumbLink> {
           widget.label,
           key: widget.linkKey,
           style: TextStyle(
-            color: _isHovered
-                ? theme.colorScheme.primary
-                : theme.colorScheme.onSurfaceVariant,
+            color: theme.colorScheme.primary,
             decoration: _isHovered
                 ? TextDecoration.underline
                 : TextDecoration.none,

@@ -53,6 +53,16 @@ class _OrgAdminCreateViewState extends ConsumerState<OrgAdminCreateView> {
       return false;
     }
 
+    if (_headOfEmail != null && _headOfEmail!.trim().isNotEmpty) {
+      final emailToCheck = _headOfEmail!.trim().toLowerCase();
+      final orgs = ref.read(orgUnitsStreamProvider).value ?? [];
+      final alreadyHead = orgs.any((o) => o.headOfEmail.trim().toLowerCase() == emailToCheck);
+      if (alreadyHead) {
+        setState(() => _errorMessage = 'This user is already the head of another organization unit.');
+        return false;
+      }
+    }
+
     try {
       final id = const Uuid().v4();
       final adminEmail = ref.read(currentUserProvider)?.email ?? 'system';
@@ -81,7 +91,10 @@ class _OrgAdminCreateViewState extends ConsumerState<OrgAdminCreateView> {
     }
   }
 
-  void _showHeadOfSelectionModal(List<UserModel> users) {
+  void _showHeadOfSelectionModal(List<UserModel> users, List<OrgUnitModel> orgs) {
+    final headEmails = orgs.map((o) => o.headOfEmail.trim().toLowerCase()).toSet();
+    final assignableUsers = users.where((u) => !headEmails.contains(u.email.trim().toLowerCase())).toList();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -89,7 +102,7 @@ class _OrgAdminCreateViewState extends ConsumerState<OrgAdminCreateView> {
         String? localSelectedEmail = _headOfEmail;
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            final filteredUsers = users.where((u) {
+            final filteredUsers = assignableUsers.where((u) {
               final q = query.trim().toLowerCase();
               if (q.isEmpty) return true;
               return u.fullName.toLowerCase().contains(q) ||
@@ -198,6 +211,8 @@ class _OrgAdminCreateViewState extends ConsumerState<OrgAdminCreateView> {
     final theme = Theme.of(context);
     final usersAsync = ref.watch(usersStreamProvider);
     final users = usersAsync.value ?? [];
+    final orgsAsync = ref.watch(orgUnitsStreamProvider);
+    final orgs = orgsAsync.value ?? [];
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFFFFF),
@@ -394,7 +409,7 @@ class _OrgAdminCreateViewState extends ConsumerState<OrgAdminCreateView> {
                         orElse: () => null,
                       );
                       return GestureDetector(
-                        onTap: () => _showHeadOfSelectionModal(users),
+                        onTap: () => _showHeadOfSelectionModal(users, orgs),
                         child: AbsorbPointer(
                           child: TextField(
                             key: const Key('org_create_head_dropdown'),
@@ -453,8 +468,8 @@ class _BreadcrumbLinkState extends State<BreadcrumbLink> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final primaryColor = theme.colorScheme.primary;
-    final hoverColor = theme.colorScheme.secondary;
+    final primaryColor = theme.colorScheme.onSurfaceVariant;
+    final hoverColor = theme.colorScheme.primary;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),

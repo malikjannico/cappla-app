@@ -1,4 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cappla/main.dart';
 import 'package:cappla/models/user_model.dart';
 import 'package:cappla/models/org_unit_model.dart';
 import 'package:cappla/services/database/database_service.dart';
@@ -495,6 +498,207 @@ void main() {
         // Verify both are now Inactive and no stack overflow occurred
         expect((await db.getOrgUnit('UNIT_A'))!.status, equals('Inactive'));
         expect((await db.getOrgUnit('UNIT_B'))!.status, equals('Inactive'));
+      },
+    );
+
+    testWidgets(
+      '9. Enforce single-head constraint in create and edit org unit views',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1200, 1000);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        // Seed initial data
+        final orgA = OrgUnitModel(
+          id: 'ORG_A',
+          name: 'Organization A',
+          abbreviation: 'OA',
+          headOfEmail: 'head.a@vetter.com',
+          type: 'department',
+          childIds: [],
+          status: 'Active',
+        );
+        harness.seedOrgUnit(orgA);
+
+        final headA = UserModel(
+          id: 'head_a_uuid',
+          fullName: 'Head A',
+          email: 'head.a@vetter.com',
+          title: 'Director A',
+          status: 'Active',
+          role: 'User',
+          orgUnitId: 'ORG_A',
+        );
+        final otherUser = UserModel(
+          id: 'other_user_uuid',
+          fullName: 'Other User',
+          email: 'other@vetter.com',
+          title: 'Specialist',
+          status: 'Active',
+          role: 'User',
+          orgUnitId: null,
+        );
+        harness.seedUser(headA, 'Pass123!');
+        harness.seedUser(otherUser, 'Pass123!');
+        harness.seedAdminUser();
+
+        // Launch App and Login as Admin
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: harness.container,
+            child: const CapplaApp(),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.byKey(const Key('login_email_input')),
+          'MalikJannico.Press@vetter-pharma.com',
+        );
+        await tester.tap(find.byKey(const Key('login_next_button')));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('login_password_input')),
+          'AdminPassword123!',
+        );
+        await tester.tap(find.byKey(const Key('login_submit_button')));
+        await tester.pumpAndSettle();
+
+        // Switch to Administration tab
+        await tester.tap(find.byKey(const Key('tab_collection_dropdown')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Administration').last);
+        await tester.pumpAndSettle();
+
+        // Navigate to Orgs Admin
+        await tester.tap(find.byKey(const Key('nav_rail_orgs')));
+        await tester.pumpAndSettle();
+
+        // --- Create Org Unit Validation Test ---
+        await tester.tap(find.byKey(const Key('create_org_button')));
+        await tester.pumpAndSettle();
+
+        // Enter values
+        await tester.enterText(
+          find.byKey(const Key('org_create_name_input')),
+          'Organization B',
+        );
+        await tester.enterText(
+          find.byKey(const Key('org_create_abbrev_input')),
+          'OB',
+        );
+
+        // Open Head Of selection modal
+        await tester.tap(find.byKey(const Key('org_create_head_dropdown')), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        // Modal should NOT show Head A (already head of ORG_A)
+        expect(find.text('Head A'), findsNothing);
+        expect(find.text('Other User'), findsOneWidget);
+
+        // Select Other User
+        await tester.tap(find.text('Other User'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('user_modal_select_button')));
+        await tester.pumpAndSettle();
+
+        // Now, bypass modal check by seeding a unit making Other User a head before saving
+        final orgTemp = OrgUnitModel(
+          id: 'ORG_TEMP',
+          name: 'Temp Org',
+          abbreviation: 'TO',
+          headOfEmail: 'other@vetter.com',
+          type: 'department',
+          childIds: [],
+          status: 'Active',
+        );
+        harness.seedOrgUnit(orgTemp);
+
+        // Click Save
+        await tester.tap(find.byKey(const Key('org_create_save_button')));
+        await tester.pumpAndSettle();
+
+        // Verify error text
+        expect(
+          find.byKey(const Key('org_create_error_text')),
+          findsOneWidget,
+        );
+        expect(
+          find.text('This user is already the head of another organization unit.'),
+          findsOneWidget,
+        );
+
+        // Cancel creation
+        await tester.tap(find.byKey(const Key('org_create_cancel_button')));
+        await tester.pumpAndSettle();
+
+        // --- Edit Org Unit Validation Test ---
+        // Let's open ORG_A details to edit it
+        await tester.tap(find.text('Organization A'));
+        await tester.pumpAndSettle();
+
+        // Click Edit button
+        await tester.tap(find.byKey(const Key('org_detail_edit_button')));
+        await tester.pumpAndSettle();
+
+        // Open Head Of modal in edit mode
+        await tester.tap(find.byKey(const Key('org_detail_head_input')), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        // Head A should be in list since they are current head of ORG_A (not other unit)
+        expect(find.text('Other User'), findsNothing);
+
+        // Cancel selection
+        await tester.tap(find.byKey(const Key('user_modal_cancel_button')));
+        await tester.pumpAndSettle();
+
+        // Bypass edit modal check:
+        // We will free Other User from ORG_TEMP by removing ORG_TEMP
+        harness.removeOrgUnit('ORG_TEMP');
+        await tester.pumpAndSettle();
+
+        // Open selector again
+        await tester.tap(find.byKey(const Key('org_detail_head_input')), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        // Now Other User is not head of any unit, so they should be assignable
+        expect(find.text('Other User'), findsOneWidget);
+
+        // Select Other User
+        await tester.tap(find.text('Other User'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('user_modal_select_button')));
+        await tester.pumpAndSettle();
+
+        // Now, make Other User head of another unit ORG_TEMP2 before saving
+        final orgTemp2 = OrgUnitModel(
+          id: 'ORG_TEMP2',
+          name: 'Temp Org 2',
+          abbreviation: 'TO2',
+          headOfEmail: 'other@vetter.com',
+          type: 'department',
+          childIds: [],
+          status: 'Active',
+        );
+        harness.seedOrgUnit(orgTemp2);
+        await tester.pumpAndSettle();
+
+        // Save Org detail
+        await tester.tap(find.byKey(const Key('org_detail_save_button')));
+        await tester.pumpAndSettle();
+
+        // Verify error text
+        expect(
+          find.byKey(const Key('org_detail_error_text')),
+          findsOneWidget,
+        );
+        expect(
+          find.text('This user is already the head of another organization unit.'),
+          findsOneWidget,
+        );
       },
     );
   });

@@ -53,7 +53,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     if (myOrg == null) return;
 
     final assignableUsers = allUsers.where((u) {
-      return u.orgUnitId == activity.ownerOrgUnitId &&
+      return u.orgUnitId == myOrg.id &&
           !activity.assignedUserEmails.contains(u.email);
     }).toList();
 
@@ -251,7 +251,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                     Text(
                       ' / ',
                       style: TextStyle(
-                        color: theme.colorScheme.onSurfaceVariant,
+                        color: theme.colorScheme.primary,
                       ),
                     ),
                     BreadcrumbLink(
@@ -266,7 +266,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                   ],
                   Text(
                     ' / ${activity.name}',
-                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                    style: TextStyle(color: theme.colorScheme.primary),
                   ),
                 ],
               ),
@@ -288,19 +288,21 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      FilledButton(
-                        key: const Key('activity_detail_edit_button'),
-                        onPressed: () {
-                          context.go(
-                            RouterPaths.settingsActivitiesEditPath(
-                              widget.activityGroupId,
-                              activity.id,
-                            ),
-                          );
-                        },
-                        child: const Text('Edit'),
-                      ),
-                      const SizedBox(width: 8),
+                      if (isOwner) ...[
+                        FilledButton(
+                          key: const Key('activity_detail_edit_button'),
+                          onPressed: () {
+                            context.go(
+                              RouterPaths.settingsActivitiesEditPath(
+                                widget.activityGroupId,
+                                activity.id,
+                              ),
+                            );
+                          },
+                          child: const Text('Edit'),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
                       Directionality(
                         textDirection: TextDirection.rtl,
                         child: MenuAnchor(
@@ -401,82 +403,83 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                                 ),
                               ),
                             ),
-                            Directionality(
-                              textDirection: TextDirection.ltr,
-                              child: MenuItemButton(
-                                key: Key('activity_detail_share_item'),
-                                onPressed: () async {
-                                  const val = 'share';
-                                  if (val == 'toggle') {
-                                    if (actStatus == 'Inactive') {
-                                      // If it is Limited and expired, require a new date range
-                                      final isExpired =
-                                          activity.type == 'Limited' &&
-                                          activity.validityEnd != null &&
-                                          activity.validityEnd!.isBefore(
-                                            DateTime.now(),
-                                          );
+                            if (isOwner)
+                              Directionality(
+                                textDirection: TextDirection.ltr,
+                                child: MenuItemButton(
+                                  key: Key('activity_detail_share_item'),
+                                  onPressed: () async {
+                                    const val = 'share';
+                                    if (val == 'toggle') {
+                                      if (actStatus == 'Inactive') {
+                                        // If it is Limited and expired, require a new date range
+                                        final isExpired =
+                                            activity.type == 'Limited' &&
+                                            activity.validityEnd != null &&
+                                            activity.validityEnd!.isBefore(
+                                              DateTime.now(),
+                                            );
 
-                                      if (isExpired) {
-                                        _showReactivateModal(activity);
-                                        return;
+                                        if (isExpired) {
+                                          _showReactivateModal(activity);
+                                          return;
+                                        }
                                       }
-                                    }
-                                    final newStatus = actStatus == 'Active'
-                                        ? 'Inactive'
-                                        : 'Active';
-                                    final newStatusMap =
-                                        Map<String, String>.from(
-                                          activity.statusMap,
-                                        )..[myOrg.id] = newStatus;
-                                    await ref
-                                        .read(databaseServiceProvider)
-                                        .saveActivity(
-                                          activity.copyWith(
-                                            statusMap: newStatusMap,
-                                            lastModifiedBy:
-                                                user?.email ?? 'system',
-                                            lastModifiedAt: DateTime.now(),
-                                          ),
-                                        );
-                                  } else if (val == 'share') {
-                                    _showShareModal(activity);
-                                  } else if (val == 'delete') {
-                                    try {
+                                      final newStatus = actStatus == 'Active'
+                                          ? 'Inactive'
+                                          : 'Active';
+                                      final newStatusMap =
+                                          Map<String, String>.from(
+                                            activity.statusMap,
+                                          )..[myOrg.id] = newStatus;
                                       await ref
                                           .read(databaseServiceProvider)
-                                          .deleteActivity(
-                                            activity.id,
-                                            myOrg.id,
+                                          .saveActivity(
+                                            activity.copyWith(
+                                              statusMap: newStatusMap,
+                                              lastModifiedBy:
+                                                  user?.email ?? 'system',
+                                              lastModifiedAt: DateTime.now(),
+                                            ),
                                           );
-                                      if (context.mounted) {
-                                        context.go(
-                                          RouterPaths.settingsActivityGroupsDetailPath(
-                                            widget.activityGroupId,
-                                          ),
-                                        );
-                                      }
-                                    } catch (e) {
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              e.toString().replaceAll(
-                                                'Exception: ',
-                                                '',
+                                    } else if (val == 'share') {
+                                      _showShareModal(activity);
+                                    } else if (val == 'delete') {
+                                      try {
+                                        await ref
+                                            .read(databaseServiceProvider)
+                                            .deleteActivity(
+                                              activity.id,
+                                              myOrg.id,
+                                            );
+                                        if (context.mounted) {
+                                          context.go(
+                                            RouterPaths.settingsActivityGroupsDetailPath(
+                                              widget.activityGroupId,
+                                            ),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                e.toString().replaceAll(
+                                                  'Exception: ',
+                                                  '',
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        );
+                                          );
+                                        }
                                       }
                                     }
-                                  }
-                                },
-                                child: Text('Share'),
+                                  },
+                                  child: Text('Share'),
+                                ),
                               ),
-                            ),
                             Directionality(
                               textDirection: TextDirection.ltr,
                               child: MenuItemButton(
@@ -615,7 +618,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                           Text(
                             'Status',
                             style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
+                              color: theme.colorScheme.primary,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -835,13 +838,12 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         ),
                       ],
                     ),
-                    if (myOrg.id == activity.ownerOrgUnitId)
-                      FilledButton(
-                        key: const Key('activity_add_employee_button'),
-                        onPressed: () =>
-                            _showAssignEmployeeModal(allUsers, activity),
-                        child: const Text('Assign User'),
-                      ),
+                    FilledButton(
+                      key: const Key('activity_add_employee_button'),
+                      onPressed: () =>
+                          _showAssignEmployeeModal(allUsers, activity),
+                      child: const Text('Assign User'),
+                    ),
                   ],
                 ),
               ),
@@ -853,6 +855,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                     u.email,
                   );
                   if (!isAssigned) return false;
+                  if (u.orgUnitId != myOrg.id) return false;
                   final q = _employeeQuery.trim().toLowerCase();
                   if (q.isNotEmpty &&
                       !u.fullName.toLowerCase().contains(q) &&
@@ -1088,13 +1091,12 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.surfaceContainer,
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(12),
-                            ),
-                            border: Border.all(
-                              color: theme.colorScheme.outlineVariant,
-                              width: 0.5,
+                            color: Colors.white,
+                            border: Border(
+                              bottom: BorderSide(
+                                color: theme.colorScheme.primary,
+                                width: 2.0,
+                              ),
                             ),
                           ),
                           padding: const EdgeInsets.symmetric(
@@ -1141,16 +1143,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                             padding: const EdgeInsets.all(32),
                             decoration: BoxDecoration(
                               border: Border(
-                                left: BorderSide(
-                                  color: theme.colorScheme.outlineVariant,
-                                  width: 0.5,
-                                ),
-                                right: BorderSide(
-                                  color: theme.colorScheme.outlineVariant,
-                                  width: 0.5,
-                                ),
                                 bottom: BorderSide(
-                                  color: theme.colorScheme.outlineVariant,
+                                  color: theme.colorScheme.primary,
                                   width: 0.5,
                                 ),
                               ),
@@ -1173,18 +1167,12 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                                 ),
                                 decoration: BoxDecoration(
                                   border: Border(
-                                    left: BorderSide(
-                                      color: theme.colorScheme.outlineVariant,
-                                      width: 0.5,
-                                    ),
-                                    right: BorderSide(
-                                      color: theme.colorScheme.outlineVariant,
-                                      width: 0.5,
-                                    ),
-                                    bottom: BorderSide(
-                                      color: theme.colorScheme.outlineVariant,
-                                      width: 0.5,
-                                    ),
+                                    bottom: idx == displayedEmployees.length - 1
+                                        ? BorderSide.none
+                                        : BorderSide(
+                                            color: theme.colorScheme.primary,
+                                            width: 0.5,
+                                          ),
                                   ),
                                 ),
                                 padding: const EdgeInsets.symmetric(

@@ -176,17 +176,27 @@ class _UserAdminListViewState extends ConsumerState<UserAdminListView> {
                 children: [
                   MenuAnchor(
                     builder: (context, controller, child) {
+                      final bool isSelected = _statusFilter != null;
                       return FilterChip(
                         key: const Key('filter_status_dropdown'),
                         label: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(_statusFilter ?? 'Status'),
+                            Text(
+                              _statusFilter ?? 'Status',
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : null,
+                              ),
+                            ),
                             const SizedBox(width: 4),
-                            const Icon(Icons.arrow_drop_down, size: 18),
+                            Icon(
+                              Icons.arrow_drop_down,
+                              size: 18,
+                              color: isSelected ? Colors.white : null,
+                            ),
                           ],
                         ),
-                        selected: _statusFilter != null,
+                        selected: isSelected,
                         onSelected: (selected) {
                           if (controller.isOpen) {
                             controller.close();
@@ -221,17 +231,27 @@ class _UserAdminListViewState extends ConsumerState<UserAdminListView> {
                       String roleLabel = 'Role';
                       if (_roleFilter == 'Administrator') roleLabel = 'Admin';
                       if (_roleFilter == 'User') roleLabel = 'User';
+                      final bool isSelected = _roleFilter != null;
                       return FilterChip(
                         key: const Key('filter_role_dropdown'),
                         label: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(roleLabel),
+                            Text(
+                              roleLabel,
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : null,
+                              ),
+                            ),
                             const SizedBox(width: 4),
-                            const Icon(Icons.arrow_drop_down, size: 18),
+                            Icon(
+                              Icons.arrow_drop_down,
+                              size: 18,
+                              color: isSelected ? Colors.white : null,
+                            ),
                           ],
                         ),
-                        selected: _roleFilter != null,
+                        selected: isSelected,
                         onSelected: (selected) {
                           if (controller.isOpen) {
                             controller.close();
@@ -273,17 +293,27 @@ class _UserAdminListViewState extends ConsumerState<UserAdminListView> {
                       final orgLabel = orgUnit != null
                           ? orgUnit.abbreviation
                           : 'Org Unit';
+                      final bool isSelected = _orgFilter != null;
                       return FilterChip(
                         key: const Key('filter_org_unit_dropdown'),
                         label: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(orgLabel),
+                            Text(
+                              orgLabel,
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : null,
+                              ),
+                            ),
                             const SizedBox(width: 4),
-                            const Icon(Icons.arrow_drop_down, size: 18),
+                            Icon(
+                              Icons.arrow_drop_down,
+                              size: 18,
+                              color: isSelected ? Colors.white : null,
+                            ),
                           ],
                         ),
-                        selected: _orgFilter != null,
+                        selected: isSelected,
                         onSelected: (selected) {
                           if (controller.isOpen) {
                             controller.close();
@@ -359,13 +389,12 @@ class _UserAdminListViewState extends ConsumerState<UserAdminListView> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainer,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
-                  border: Border.all(
-                    color: theme.colorScheme.outlineVariant,
-                    width: 0.5,
+                  color: Colors.white,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: theme.colorScheme.primary,
+                      width: 2.0,
+                    ),
                   ),
                 ),
                 padding: const EdgeInsets.symmetric(
@@ -427,16 +456,8 @@ class _UserAdminListViewState extends ConsumerState<UserAdminListView> {
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
                     border: Border(
-                      left: BorderSide(
-                        color: theme.colorScheme.outlineVariant,
-                        width: 0.5,
-                      ),
-                      right: BorderSide(
-                        color: theme.colorScheme.outlineVariant,
-                        width: 0.5,
-                      ),
                       bottom: BorderSide(
-                        color: theme.colorScheme.outlineVariant,
+                        color: theme.colorScheme.primary,
                         width: 0.5,
                       ),
                     ),
@@ -463,18 +484,12 @@ class _UserAdminListViewState extends ConsumerState<UserAdminListView> {
                       child: Container(
                         decoration: BoxDecoration(
                           border: Border(
-                            left: BorderSide(
-                              color: theme.colorScheme.outlineVariant,
-                              width: 0.5,
-                            ),
-                            right: BorderSide(
-                              color: theme.colorScheme.outlineVariant,
-                              width: 0.5,
-                            ),
-                            bottom: BorderSide(
-                              color: theme.colorScheme.outlineVariant,
-                              width: 0.5,
-                            ),
+                            bottom: idx == displayedUsers.length - 1
+                                ? BorderSide.none
+                                : BorderSide(
+                                    color: theme.colorScheme.primary,
+                                    width: 0.5,
+                                  ),
                           ),
                         ),
                         padding: const EdgeInsets.symmetric(
@@ -710,16 +725,8 @@ class _UserAdminListViewState extends ConsumerState<UserAdminListView> {
         return Container(
           decoration: BoxDecoration(
             border: Border(
-              left: BorderSide(
-                color: theme.colorScheme.outlineVariant,
-                width: 0.5,
-              ),
-              right: BorderSide(
-                color: theme.colorScheme.outlineVariant,
-                width: 0.5,
-              ),
               bottom: BorderSide(
-                color: theme.colorScheme.outlineVariant,
+                color: theme.colorScheme.primary,
                 width: 0.5,
               ),
             ),

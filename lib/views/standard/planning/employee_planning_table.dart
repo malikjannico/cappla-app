@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
@@ -111,6 +112,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
   late final ScrollController _headerScrollController;
   late final ScrollController _middleScrollController;
   late final ScrollController _footerScrollController;
+  late final ScrollController _verticalScrollController;
   bool _isSyncingScroll = false;
 
   bool _isResourceLocked(String empEmail, String activityId) {
@@ -178,6 +180,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
     _headerScrollController = ScrollController();
     _middleScrollController = ScrollController();
     _footerScrollController = ScrollController();
+    _verticalScrollController = ScrollController();
 
     _middleScrollController.addListener(_syncScroll);
     _headerScrollController.addListener(_syncHeaderScroll);
@@ -381,6 +384,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
     _headerScrollController.dispose();
     _middleScrollController.dispose();
     _footerScrollController.dispose();
+    _verticalScrollController.dispose();
     super.dispose();
   }
 
@@ -1168,7 +1172,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
             height: 48,
             child: activitiesHeaderChild,
             rowKey: 'header_activities',
-            backgroundColor: theme.colorScheme.surfaceContainer,
+            backgroundColor: Colors.white,
           ),
         );
 
@@ -1197,7 +1201,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                     ),
                   ),
                   rowKey: 'header_${emp.email}_$index',
-                  backgroundColor: theme.colorScheme.surfaceContainer,
+                  backgroundColor: Colors.white,
                 ),
               );
               colIdx++;
@@ -1217,7 +1221,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                 ),
               ),
               rowKey: 'header_${emp.email}_sum',
-              backgroundColor: theme.colorScheme.surfaceContainer,
+              backgroundColor: Colors.white,
             ),
           );
           colIdx++;
@@ -1241,8 +1245,8 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
             rowIndex: 2,
             tooltipMessage:
                 "Available Capacity is calculated from the employee's standard weekly working hours and any specific capacity overrides/contracts for this period.",
-            backgroundColor: theme.colorScheme.tertiaryContainer,
-            textColor: theme.colorScheme.onTertiaryContainer,
+            backgroundColor: theme.colorScheme.tertiary,
+            textColor: theme.colorScheme.onTertiary,
             isBold: true,
           ),
         );
@@ -1271,8 +1275,8 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
             isEditable: false,
             onChanged: (_, _) {},
             rowKey: 'cap_${emp.email}',
-            backgroundColor: theme.colorScheme.tertiaryContainer,
-            textColor: theme.colorScheme.onTertiaryContainer,
+            backgroundColor: theme.colorScheme.tertiary,
+            textColor: theme.colorScheme.onTertiary,
             isBold: true,
             rowIndex: 2,
             startColIndex: colIndexCounter,
@@ -1296,8 +1300,8 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
               theme: theme,
               title: group.name,
               rowIndex: rowIdx,
-              backgroundColor: Colors.transparent,
-              textColor: theme.colorScheme.onSurface,
+              backgroundColor: const Color(0xFFCCE8F6),
+              textColor: theme.colorScheme.primary,
               isBold: true,
               hasBorderHighlight: true,
             ),
@@ -1335,8 +1339,8 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                 onChanged: (_, _) {},
                 hasBorderHighlight: true,
                 rowKey: 'group_sum_${group.id}_${emp.email}',
-                backgroundColor: Colors.transparent,
-                textColor: theme.colorScheme.onSurface,
+                backgroundColor: const Color(0xFFCCE8F6),
+                textColor: theme.colorScheme.primary,
                 isBold: true,
                 rowIndex: rowIdx,
                 startColIndex: colIndexCounter,
@@ -1356,7 +1360,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                 rowIndex: rowIdx,
                 activity: act,
                 backgroundColor: Colors.transparent,
-                textColor: theme.colorScheme.onSurface,
+                textColor: theme.colorScheme.primary,
                 isBold: false,
               ),
             );
@@ -1404,7 +1408,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                   },
                   rowKey: allocKey,
                   backgroundColor: Colors.transparent,
-                  textColor: theme.colorScheme.onSurfaceVariant,
+                  textColor: theme.colorScheme.primary,
                   isBold: false,
                   rowIndex: rowIdx,
                   startColIndex: colIndexCounter,
@@ -1423,8 +1427,8 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
             theme: theme,
             title: 'Planned Capacity',
             rowIndex: rowIdx,
-            backgroundColor: theme.colorScheme.primaryContainer,
-            textColor: theme.colorScheme.onPrimaryContainer,
+            backgroundColor: theme.colorScheme.primary,
+            textColor: theme.colorScheme.onPrimary,
             isBold: true,
           ),
         );
@@ -1459,8 +1463,8 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
               isEditable: false,
               onChanged: (_, _) {},
               rowKey: 'total_sum_${emp.email}',
-              backgroundColor: theme.colorScheme.primaryContainer,
-              textColor: theme.colorScheme.onPrimaryContainer,
+              backgroundColor: theme.colorScheme.primary,
+              textColor: theme.colorScheme.onPrimary,
               isBold: true,
               rowIndex: rowIdx,
               startColIndex: colIndexCounter,
@@ -1625,37 +1629,76 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                 ],
               ),
               // 2. Scrollable Body (Activity Groups and Activities)
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: fixedColWidth,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: fixedColCells.sublist(
-                            3,
-                            fixedColCells.length - 2,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          controller: _middleScrollController,
+              Flexible(
+                child: Listener(
+                  onPointerSignal: (pointerSignal) {
+                    if (pointerSignal is PointerScrollEvent) {
+                      final double dy = pointerSignal.scrollDelta.dy;
+                      if (dy != 0 && _verticalScrollController.hasClients) {
+                        final newOffset = (_verticalScrollController.offset + dy).clamp(
+                          _verticalScrollController.position.minScrollExtent,
+                          _verticalScrollController.position.maxScrollExtent,
+                        );
+                        _verticalScrollController.jumpTo(newOffset);
+                      }
+                    }
+                  },
+                  child: SingleChildScrollView(
+                    controller: _verticalScrollController,
+                    scrollDirection: Axis.vertical,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: fixedColWidth,
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: List.generate(scrollColRows.length - 5, (
-                              rowIndex,
-                            ) {
-                              return Row(children: scrollColRows[rowIndex + 3]);
-                            }),
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: fixedColCells.sublist(
+                              3,
+                              fixedColCells.length - 2,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                        Expanded(
+                          child: Listener(
+                            onPointerSignal: (pointerSignal) {
+                              if (pointerSignal is PointerScrollEvent) {
+                                final double dy = pointerSignal.scrollDelta.dy;
+                                if (dy != 0 &&
+                                    _verticalScrollController.hasClients) {
+                                  final newOffset =
+                                      (_verticalScrollController.offset + dy)
+                                          .clamp(
+                                            _verticalScrollController
+                                                .position
+                                                .minScrollExtent,
+                                            _verticalScrollController
+                                                .position
+                                                .maxScrollExtent,
+                                          );
+                                  _verticalScrollController.jumpTo(newOffset);
+                                }
+                              }
+                            },
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              controller: _middleScrollController,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: List.generate(
+                                  scrollColRows.length - 5,
+                                  (rowIndex) {
+                                    return Row(
+                                      children: scrollColRows[rowIndex + 3],
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -1707,6 +1750,14 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
     String? tooltipMessage,
     ActivityModel? activity,
   }) {
+    final bool isWhiteBackground = backgroundColor == null ||
+        backgroundColor == Colors.transparent ||
+        backgroundColor == Colors.white;
+    final resolvedTextColor = textColor ??
+        (isWhiteBackground
+            ? theme.colorScheme.primary
+            : theme.colorScheme.onSurface);
+
     Widget labelWidget;
     if (activity != null) {
       final category = widget.categories.firstWhere(
@@ -1751,8 +1802,8 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                             ? FontWeight.bold
                             : FontWeight.normal,
                         color: lock != null
-                            ? textColor?.withValues(alpha: 0.5)
-                            : textColor,
+                            ? resolvedTextColor.withValues(alpha: 0.5)
+                            : resolvedTextColor,
                         fontSize: 14,
                       ),
                       maxLines: 1,
@@ -1770,13 +1821,13 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.secondaryContainer,
+                      color: theme.colorScheme.secondary,
                       borderRadius: BorderRadius.circular(100),
                     ),
                     child: Text(
                       category.name,
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSecondaryContainer,
+                        color: theme.colorScheme.onPrimary,
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
                       ),
@@ -1830,7 +1881,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
               text: title,
               style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-                color: textColor,
+                color: resolvedTextColor,
               ),
             ),
             const WidgetSpan(
@@ -1851,9 +1902,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                 child: Icon(
                   Icons.info_outline,
                   size: 14,
-                  color:
-                      textColor?.withValues(alpha: 0.7) ??
-                      theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  color: resolvedTextColor.withValues(alpha: 0.7),
                 ),
               ),
             ),
@@ -1867,7 +1916,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
         title,
         style: TextStyle(
           fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-          color: textColor,
+          color: resolvedTextColor,
         ),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
@@ -1890,7 +1939,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
       child: col0Child,
       rowKey: 'fixed_$rowIndex',
       backgroundColor: backgroundColor,
-      textColor: textColor,
+      textColor: resolvedTextColor,
       isBold: isBold,
       hasBorderHighlight: hasBorderHighlight,
     );
@@ -1944,9 +1993,10 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
         _dragFillRange!.contains(r, c) &&
         (!widget.isEditing || _isCellEditable(r, c));
 
+    final isHeader = rowKey.startsWith('header');
     final baseColor = isGreyedOut
         ? (Colors.grey[200] ?? const Color(0xFFEEEEEE))
-        : (backgroundColor ?? Colors.transparent);
+        : (isHeader ? Colors.white : (backgroundColor ?? Colors.transparent));
 
     final displayColor = isSelected
         ? Color.alphaBlend(
@@ -1960,20 +2010,16 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                 )
               : baseColor);
 
-    final BorderSide bottomBorder = BorderSide(
-      color: hasBorderHighlight
-          ? theme.colorScheme.primary
-          : theme.colorScheme.outlineVariant,
-      width: hasBorderHighlight ? 1.5 : 0.5,
-    );
+    final BorderSide bottomBorder = isHeader
+        ? BorderSide(color: theme.colorScheme.primary, width: 2.0)
+        : BorderSide(
+            color: theme.colorScheme.primary,
+            width: hasBorderHighlight ? 1.5 : 0.5,
+          );
 
     BoxDecoration cellDeco = BoxDecoration(
       color: displayColor,
       border: Border(
-        left: c == 0
-            ? BorderSide(color: theme.colorScheme.outlineVariant, width: 0.5)
-            : BorderSide.none,
-        right: BorderSide(color: theme.colorScheme.outlineVariant, width: 0.5),
         bottom: bottomBorder,
       ),
     );
@@ -1983,17 +2029,12 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
         color: theme.colorScheme.secondary,
         width: 1.5,
       );
-      final leftBorder = c == 0
-          ? BorderSide(color: theme.colorScheme.outlineVariant, width: 0.5)
-          : BorderSide.none;
       cellDeco = cellDeco.copyWith(
         border: Border(
           top: r == _dragFillRange!.minRow ? borderSide : BorderSide.none,
           bottom: r == _dragFillRange!.maxRow ? borderSide : bottomBorder,
-          left: c == _dragFillRange!.minCol ? borderSide : leftBorder,
-          right: c == _dragFillRange!.maxCol
-              ? borderSide
-              : BorderSide(color: theme.colorScheme.outlineVariant, width: 0.5),
+          left: c == _dragFillRange!.minCol ? borderSide : BorderSide.none,
+          right: c == _dragFillRange!.maxCol ? borderSide : BorderSide.none,
         ),
       );
     } else if (isSelected) {
@@ -2001,17 +2042,12 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
         color: theme.colorScheme.primary,
         width: 1.5,
       );
-      final leftBorder = c == 0
-          ? BorderSide(color: theme.colorScheme.outlineVariant, width: 0.5)
-          : BorderSide.none;
       cellDeco = cellDeco.copyWith(
         border: Border(
           top: r == _selectedRange!.minRow ? borderSide : BorderSide.none,
           bottom: r == _selectedRange!.maxRow ? borderSide : bottomBorder,
-          left: c == _selectedRange!.minCol ? borderSide : leftBorder,
-          right: c == _selectedRange!.maxCol
-              ? borderSide
-              : BorderSide(color: theme.colorScheme.outlineVariant, width: 0.5),
+          left: c == _selectedRange!.minCol ? borderSide : BorderSide.none,
+          right: c == _selectedRange!.maxCol ? borderSide : BorderSide.none,
         ),
       );
     }
@@ -2301,6 +2337,14 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
 
     final isDelta = rowKey.startsWith('delta_');
 
+    final bool isWhiteBackground = backgroundColor == null ||
+        backgroundColor == Colors.transparent ||
+        backgroundColor == Colors.white;
+    final resolvedTextColor = textColor ??
+        (isWhiteBackground
+            ? theme.colorScheme.primary
+            : theme.colorScheme.onSurfaceVariant);
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -2375,11 +2419,8 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
             final Color activeTextColor = isDelta
                 ? (val < 0
                       ? errorColor
-                      : (val > 0
-                            ? successColor
-                            : (textColor ??
-                                  theme.colorScheme.onSurfaceVariant)))
-                : (textColor ?? theme.colorScheme.onSurfaceVariant);
+                      : successColor)
+                : resolvedTextColor;
 
             final cellStyle = TextStyle(
               color: isGreyedOut ? Colors.grey[400] : activeTextColor,
@@ -2453,7 +2494,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
               isCellEditable: isEditable && !isGreyedOut,
               isGreyedOut: isGreyedOut,
               backgroundColor: backgroundColor,
-              textColor: textColor,
+              textColor: resolvedTextColor,
               isBold: isBold,
               hasBorderHighlight: hasBorderHighlight,
               focusNode: (isEditable && !isGreyedOut) ? cellFocusNode : null,
@@ -2480,16 +2521,11 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                     : (isDelta
                           ? (rowSum < 0
                                 ? theme.colorScheme.error
-                                : (rowSum > 0
-                                      ? (theme
-                                                .extension<AppColorsExtension>()
-                                                ?.success ??
-                                            const Color(0xFF146947))
-                                      : (textColor ??
-                                            theme
-                                                .colorScheme
-                                                .onSurfaceVariant)))
-                          : (textColor ?? theme.colorScheme.onSurfaceVariant)),
+                                : (theme
+                                          .extension<AppColorsExtension>()
+                                          ?.success ??
+                                      const Color(0xFF146947)))
+                          : resolvedTextColor),
                 fontSize: 14,
               ),
             ),
@@ -2498,7 +2534,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
           isCellEditable: false,
           isGreyedOut: isGreyedOut,
           backgroundColor: backgroundColor,
-          textColor: textColor,
+          textColor: resolvedTextColor,
           isBold: true,
           hasBorderHighlight: hasBorderHighlight,
         ),

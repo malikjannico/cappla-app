@@ -82,7 +82,7 @@ class _ActivityGroupEditViewState extends ConsumerState<ActivityGroupEditView> {
                   ),
                   Text(
                     ' / ${group.name} / Edit',
-                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                    style: TextStyle(color: theme.colorScheme.primary),
                   ),
                 ],
               ),
@@ -171,7 +171,7 @@ class _ActivityGroupEditViewState extends ConsumerState<ActivityGroupEditView> {
                           'Status',
                           key: const Key('activity_group_edit_status_label'),
                           style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                            color: theme.colorScheme.primary,
                           ),
                         ),
                         const SizedBox(height: 8),

@@ -305,7 +305,7 @@ void main() {
           tester.element(find.byKey(const Key('reports_title_header'))),
         );
 
-        // Available Capacity should use tertiaryContainer
+        // Available Capacity should use tertiary
         final availableCapacityContainer = tester.widget<Container>(
           find
               .ancestor(
@@ -318,10 +318,10 @@ void main() {
             availableCapacityContainer.decoration as BoxDecoration?;
         expect(
           availableBoxDecoration?.color,
-          equals(theme.colorScheme.tertiaryContainer),
+          equals(theme.colorScheme.tertiary),
         );
 
-        // Planned Capacity should use primaryContainer
+        // Planned Capacity should use primary
         final plannedCapacityContainer = tester.widget<Container>(
           find
               .ancestor(
@@ -334,7 +334,7 @@ void main() {
             plannedCapacityContainer.decoration as BoxDecoration?;
         expect(
           plannedBoxDecoration?.color,
-          equals(theme.colorScheme.primaryContainer),
+          equals(theme.colorScheme.primary),
         );
 
         // Delta should use transparent

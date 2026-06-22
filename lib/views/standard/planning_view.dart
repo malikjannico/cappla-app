@@ -342,7 +342,12 @@ class _PlanningViewState extends ConsumerState<PlanningView> {
           }
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          padding: const EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 32,
+            bottom: 0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -354,6 +359,9 @@ class _PlanningViewState extends ConsumerState<PlanningView> {
                     'Capacity Plan',
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: widget.viewType == 'activity'
+                          ? theme.colorScheme.primary
+                          : null,
                     ),
                   ),
                   M3SegmentedButton<String>(
@@ -581,9 +589,16 @@ class _PlanningViewState extends ConsumerState<PlanningView> {
                         label: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(_selectedYear.toString()),
+                            Text(
+                              _selectedYear.toString(),
+                              style: const TextStyle(color: Colors.white),
+                            ),
                             const SizedBox(width: 4),
-                            const Icon(Icons.arrow_drop_down, size: 18),
+                            const Icon(
+                              Icons.arrow_drop_down,
+                              size: 18,
+                              color: Colors.white,
+                            ),
                           ],
                         ),
                         selected: true,
@@ -622,45 +637,41 @@ class _PlanningViewState extends ConsumerState<PlanningView> {
                 onPressed: isLocked
                     ? null
                     : () async {
-                        final empEmails = selectedEmployeesList
-                            .map((e) => e.email)
-                            .toList();
                         final actIds = catActivities.map((a) => a.id).toList();
                         final lockId =
                             'employee_${currentUser!.email}_${_selectedYear}_$orgUnitId';
-
+ 
                         final success = await _tryAcquireLock(
                           lockId: lockId,
                           lockType: 'employee',
                           activityIds: actIds,
-                          employeeEmails: empEmails,
                           orgUnitId: orgUnitId,
                         );
-
+                        if (!mounted) return;
                         if (!success) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Cannot enter edit mode. Overlapping resource is locked.',
-                                ),
-                                backgroundColor: Colors.red,
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Cannot edit. This employee view is locked by ${conflictingLock?.userFullName}.',
                               ),
-                            );
-                          }
+                              backgroundColor: Colors.red,
+                            ),
+                          );
                           return;
                         }
-
+ 
                         setState(() {
                           _employeeEditing = true;
+                          _localAllocationEdits.clear();
                           for (final emp in selectedEmployeesList) {
                             for (final act in catActivities) {
                               final allocKey = '${emp.email}_${act.id}';
                               final alloc = allAllocations.firstWhere(
                                 (a) =>
-                                    a.activityId == act.id &&
                                     a.userEmail.trim().toLowerCase() ==
-                                        emp.email.trim().toLowerCase(),
+                                        emp.email.trim().toLowerCase() &&
+                                    a.activityId == act.id &&
+                                    a.year == _selectedYear,
                                 orElse: () => PlanningAllocationModel(
                                   id: '${emp.email}_${act.id}_$_selectedYear',
                                   userEmail: emp.email,
@@ -671,13 +682,19 @@ class _PlanningViewState extends ConsumerState<PlanningView> {
                               );
                               _localAllocationEdits[allocKey] = {
                                 for (int i = 0; i < 12; i++)
-                                  i + 1: _getAllocationValue(alloc, i + 1),
+                                  i + 1: _getAllocationValue(
+                                    alloc,
+                                    i + 1,
+                                  ),
                               };
                             }
                           }
                         });
                       },
-                icon: Icon(isLocked ? Icons.lock : Icons.edit, size: 16),
+                icon: Icon(
+                  isLocked ? Icons.lock : Icons.edit,
+                  size: 16,
+                ),
                 label: Text(
                   isLocked
                       ? 'Locked by ${conflictingLock.userFullName}'
@@ -718,7 +735,7 @@ class _PlanningViewState extends ConsumerState<PlanningView> {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextButton(
+                  OutlinedButton(
                     onPressed: () {
                       setState(() {
                         _employeeEditing = false;
@@ -818,9 +835,18 @@ class _PlanningViewState extends ConsumerState<PlanningView> {
             label: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(displayLabel),
+                Text(
+                  displayLabel,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : null,
+                  ),
+                ),
                 const SizedBox(width: 4),
-                const Icon(Icons.arrow_drop_down, size: 18),
+                Icon(
+                  Icons.arrow_drop_down,
+                  size: 18,
+                  color: isSelected ? Colors.white : null,
+                ),
               ],
             ),
             selected: isSelected,
@@ -1013,6 +1039,7 @@ class _PlanningViewState extends ConsumerState<PlanningView> {
                               activity.name,
                               style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.primary,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -1024,11 +1051,10 @@ class _PlanningViewState extends ConsumerState<PlanningView> {
                               label: Text(
                                 category.name,
                                 style: theme.textTheme.labelMedium?.copyWith(
-                                  color: theme.colorScheme.onSecondaryContainer,
+                                  color: theme.colorScheme.onPrimary,
                                 ),
                               ),
-                              backgroundColor:
-                                  theme.colorScheme.secondaryContainer,
+                              backgroundColor: theme.colorScheme.secondary,
                               side: BorderSide.none,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 4,
@@ -1168,7 +1194,7 @@ class _PlanningViewState extends ConsumerState<PlanningView> {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              TextButton(
+                              OutlinedButton(
                                 onPressed: () {
                                   setState(() {
                                     _activityEditing[activity.id] = false;
@@ -1358,7 +1384,7 @@ class _PlanningViewState extends ConsumerState<PlanningView> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: isActive
-                  ? theme.colorScheme.primaryContainer
+                  ? theme.colorScheme.primary
                   : theme.colorScheme.surfaceContainer,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
@@ -1376,7 +1402,7 @@ class _PlanningViewState extends ConsumerState<PlanningView> {
                   style: TextStyle(
                     fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                     color: isActive
-                        ? theme.colorScheme.onPrimaryContainer
+                        ? theme.colorScheme.onPrimary
                         : theme.colorScheme.onSurface,
                   ),
                 ),
@@ -1400,7 +1426,7 @@ class _PlanningViewState extends ConsumerState<PlanningView> {
                     Icons.close,
                     size: 16,
                     color: isActive
-                        ? theme.colorScheme.onPrimaryContainer
+                        ? theme.colorScheme.onPrimary
                         : theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
@@ -1677,16 +1703,8 @@ class _PlanningViewState extends ConsumerState<PlanningView> {
             height: 48,
             decoration: BoxDecoration(
               border: Border(
-                left: BorderSide(
-                  color: theme.colorScheme.outlineVariant,
-                  width: 0.5,
-                ),
-                right: BorderSide(
-                  color: theme.colorScheme.outlineVariant,
-                  width: 0.5,
-                ),
                 bottom: BorderSide(
-                  color: theme.colorScheme.outlineVariant,
+                  color: theme.colorScheme.primary,
                   width: 0.5,
                 ),
               ),

@@ -74,22 +74,34 @@ class LockModel {
     'expiresAt': expiresAt.toIso8601String(),
   };
 
-  factory LockModel.fromMap(Map<String, dynamic> map) => LockModel(
-    id: map['id'] ?? '',
-    userId: map['userId'] ?? '',
-    userEmail: map['userEmail'] ?? '',
-    userFullName: map['userFullName'] ?? '',
-    lockType: map['lockType'] ?? '',
-    activityId: map['activityId'],
-    activityIds: List<String>.from(map['activityIds'] ?? []),
-    employeeEmails: List<String>.from(map['employeeEmails'] ?? []),
-    year: map['year'] ?? 0,
-    orgUnitId: map['orgUnitId'] ?? '',
-    lockedAt: map['lockedAt'] != null
-        ? DateTime.parse(map['lockedAt'])
-        : DateTime.fromMillisecondsSinceEpoch(0),
-    expiresAt: map['expiresAt'] != null
-        ? DateTime.parse(map['expiresAt'])
-        : DateTime.fromMillisecondsSinceEpoch(0),
-  );
+  factory LockModel.fromMap(Map<String, dynamic> map) {
+    DateTime? parseDate(dynamic val) {
+      if (val == null) return null;
+      if (val is String) return DateTime.parse(val);
+      try {
+        return (val as dynamic).toDate();
+      } catch (_) {
+        try {
+          return DateTime.parse(val.toString());
+        } catch (_) {
+          return null;
+        }
+      }
+    }
+
+    return LockModel(
+      id: map['id'] ?? '',
+      userId: map['userId'] ?? '',
+      userEmail: map['userEmail'] ?? '',
+      userFullName: map['userFullName'] ?? '',
+      lockType: map['lockType'] ?? '',
+      activityId: map['activityId'],
+      activityIds: List<String>.from(map['activityIds'] ?? []),
+      employeeEmails: List<String>.from(map['employeeEmails'] ?? []),
+      year: map['year'] ?? 0,
+      orgUnitId: map['orgUnitId'] ?? '',
+      lockedAt: parseDate(map['lockedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      expiresAt: parseDate(map['expiresAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
 }

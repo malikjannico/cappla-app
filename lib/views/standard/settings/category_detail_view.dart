@@ -115,7 +115,7 @@ class _CategoryDetailViewState extends ConsumerState<CategoryDetailView> {
                   ),
                   Text(
                     ' / ${category.name}',
-                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                    style: TextStyle(color: theme.colorScheme.primary),
                   ),
                 ],
               ),
@@ -137,16 +137,18 @@ class _CategoryDetailViewState extends ConsumerState<CategoryDetailView> {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      FilledButton(
-                        key: const Key('category_detail_edit_button'),
-                        onPressed: () {
-                          context.go(
-                            RouterPaths.settingsCategoriesEditPath(category.id),
-                          );
-                        },
-                        child: const Text('Edit'),
-                      ),
-                      const SizedBox(width: 8),
+                      if (isOwner) ...[
+                        FilledButton(
+                          key: const Key('category_detail_edit_button'),
+                          onPressed: () {
+                            context.go(
+                              RouterPaths.settingsCategoriesEditPath(category.id),
+                            );
+                          },
+                          child: const Text('Edit'),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
                       Directionality(
                         textDirection: TextDirection.rtl,
                         child: MenuAnchor(
@@ -231,66 +233,67 @@ class _CategoryDetailViewState extends ConsumerState<CategoryDetailView> {
                                 ),
                               ),
                             ),
-                            Directionality(
-                              textDirection: TextDirection.ltr,
-                              child: MenuItemButton(
-                                key: Key('category_detail_share_item'),
-                                onPressed: () async {
-                                  const val = 'share';
-                                  if (val == 'toggle') {
-                                    final newStatus = catStatus == 'Active'
-                                        ? 'Inactive'
-                                        : 'Active';
-                                    final newStatusMap =
-                                        Map<String, String>.from(
-                                          category.statusMap,
-                                        )..[myOrg.id] = newStatus;
-                                    await ref
-                                        .read(databaseServiceProvider)
-                                        .saveCategory(
-                                          category.copyWith(
-                                            statusMap: newStatusMap,
-                                            lastModifiedBy:
-                                                user?.email ?? 'system',
-                                            lastModifiedAt: DateTime.now(),
-                                          ),
-                                        );
-                                  } else if (val == 'share') {
-                                    _showShareModal(category);
-                                  } else if (val == 'delete') {
-                                    try {
+                            if (isOwner)
+                              Directionality(
+                                textDirection: TextDirection.ltr,
+                                child: MenuItemButton(
+                                  key: Key('category_detail_share_item'),
+                                  onPressed: () async {
+                                    const val = 'share';
+                                    if (val == 'toggle') {
+                                      final newStatus = catStatus == 'Active'
+                                          ? 'Inactive'
+                                          : 'Active';
+                                      final newStatusMap =
+                                          Map<String, String>.from(
+                                            category.statusMap,
+                                          )..[myOrg.id] = newStatus;
                                       await ref
                                           .read(databaseServiceProvider)
-                                          .deleteCategory(
-                                            category.id,
-                                            myOrg.id,
+                                          .saveCategory(
+                                            category.copyWith(
+                                              statusMap: newStatusMap,
+                                              lastModifiedBy:
+                                                  user?.email ?? 'system',
+                                              lastModifiedAt: DateTime.now(),
+                                            ),
                                           );
-                                      if (context.mounted) {
-                                        context.go(
-                                          RouterPaths.settingsCategories,
-                                        );
-                                      }
-                                    } catch (e) {
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              e.toString().replaceAll(
-                                                'Exception: ',
-                                                '',
+                                    } else if (val == 'share') {
+                                      _showShareModal(category);
+                                    } else if (val == 'delete') {
+                                      try {
+                                        await ref
+                                            .read(databaseServiceProvider)
+                                            .deleteCategory(
+                                              category.id,
+                                              myOrg.id,
+                                            );
+                                        if (context.mounted) {
+                                          context.go(
+                                            RouterPaths.settingsCategories,
+                                          );
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                e.toString().replaceAll(
+                                                  'Exception: ',
+                                                  '',
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        );
+                                          );
+                                        }
                                       }
                                     }
-                                  }
-                                },
-                                child: Text('Share'),
+                                  },
+                                  child: Text('Share'),
+                                ),
                               ),
-                            ),
                             Directionality(
                               textDirection: TextDirection.ltr,
                               child: MenuItemButton(
@@ -413,7 +416,7 @@ class _CategoryDetailViewState extends ConsumerState<CategoryDetailView> {
                           Text(
                             'Status',
                             style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
+                              color: theme.colorScheme.primary,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -640,13 +643,12 @@ class _CategoryDetailViewState extends ConsumerState<CategoryDetailView> {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainer,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12),
-                      ),
-                      border: Border.all(
-                        color: theme.colorScheme.outlineVariant,
-                        width: 0.5,
+                      color: Colors.white,
+                      border: Border(
+                        bottom: BorderSide(
+                          color: theme.colorScheme.primary,
+                          width: 2.0,
+                        ),
                       ),
                     ),
                     padding: const EdgeInsets.symmetric(
@@ -686,16 +688,8 @@ class _CategoryDetailViewState extends ConsumerState<CategoryDetailView> {
                       padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(
                         border: Border(
-                          left: BorderSide(
-                            color: theme.colorScheme.outlineVariant,
-                            width: 0.5,
-                          ),
-                          right: BorderSide(
-                            color: theme.colorScheme.outlineVariant,
-                            width: 0.5,
-                          ),
                           bottom: BorderSide(
-                            color: theme.colorScheme.outlineVariant,
+                            color: theme.colorScheme.primary,
                             width: 0.5,
                           ),
                         ),
@@ -737,18 +731,12 @@ class _CategoryDetailViewState extends ConsumerState<CategoryDetailView> {
                           key: Key('category_activity_row_${act.id}'),
                           decoration: BoxDecoration(
                             border: Border(
-                              left: BorderSide(
-                                color: theme.colorScheme.outlineVariant,
-                                width: 0.5,
-                              ),
-                              right: BorderSide(
-                                color: theme.colorScheme.outlineVariant,
-                                width: 0.5,
-                              ),
-                              bottom: BorderSide(
-                                color: theme.colorScheme.outlineVariant,
-                                width: 0.5,
-                              ),
+                              bottom: idx == displayedActivities.length - 1
+                                  ? BorderSide.none
+                                  : BorderSide(
+                                      color: theme.colorScheme.primary,
+                                      width: 0.5,
+                                    ),
                             ),
                           ),
                           padding: const EdgeInsets.symmetric(
@@ -1103,9 +1091,7 @@ class _BreadcrumbLinkState extends State<BreadcrumbLink> {
           widget.label,
           key: widget.linkKey,
           style: TextStyle(
-            color: _isHovered
-                ? theme.colorScheme.primary
-                : theme.colorScheme.onSurfaceVariant,
+            color: theme.colorScheme.primary,
             decoration: _isHovered
                 ? TextDecoration.underline
                 : TextDecoration.none,

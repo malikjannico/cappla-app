@@ -474,8 +474,8 @@ class _BreadcrumbLinkState extends State<BreadcrumbLink> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final primaryColor = theme.colorScheme.primary;
-    final hoverColor = theme.colorScheme.secondary;
+    final primaryColor = theme.colorScheme.onSurfaceVariant;
+    final hoverColor = theme.colorScheme.primary;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),

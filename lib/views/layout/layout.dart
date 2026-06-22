@@ -288,7 +288,7 @@ class _AppShellLayoutState extends ConsumerState<AppShellLayout> {
                       style: TextButton.styleFrom(
                         foregroundColor: (location.startsWith('/plan'))
                             ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurfaceVariant,
+                            : theme.colorScheme.primary,
                         textStyle: TextStyle(
                           fontWeight: (location.startsWith('/plan'))
                               ? FontWeight.bold
@@ -306,7 +306,7 @@ class _AppShellLayoutState extends ConsumerState<AppShellLayout> {
                             (location.startsWith('/reports') ||
                                 location.startsWith('/dashboards'))
                             ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurfaceVariant,
+                            : theme.colorScheme.primary,
                         textStyle: TextStyle(
                           fontWeight:
                               (location.startsWith('/reports') ||
@@ -326,7 +326,7 @@ class _AppShellLayoutState extends ConsumerState<AppShellLayout> {
                         style: TextButton.styleFrom(
                           foregroundColor: (location.startsWith('/settings'))
                               ? theme.colorScheme.primary
-                              : theme.colorScheme.onSurfaceVariant,
+                              : theme.colorScheme.primary,
                           textStyle: TextStyle(
                             fontWeight: (location.startsWith('/settings'))
                                 ? FontWeight.bold
@@ -612,7 +612,7 @@ class _SidebarItem extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
             color: isSelected
-                ? theme.colorScheme.secondaryContainer
+                ? theme.colorScheme.secondary
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(28),
           ),
@@ -628,7 +628,7 @@ class _SidebarItem extends StatelessWidget {
                 style: theme.textTheme.labelLarge?.copyWith(
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   color: isSelected
-                      ? theme.colorScheme.onSecondaryContainer
+                      ? theme.colorScheme.onPrimary
                       : theme.colorScheme.onSurfaceVariant,
                 ),
               ),

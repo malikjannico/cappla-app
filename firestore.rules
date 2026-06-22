@@ -101,6 +101,10 @@ service cloud.firestore {
       allow delete: if isActiveUser() && (isAdmin() || resource.data.userEmail.lower() == request.auth.token.email.lower());
     }
 
+    match /activationRequests/{email} {
+      allow create: if isAdmin();
+    }
+
     match /passwordResetRequests/{email} {
       allow get, delete: if true;
       allow create, update: if email.size() < 128

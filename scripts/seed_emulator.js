@@ -10,7 +10,7 @@ const admin = require('firebase-admin');
 
 // Initialize Firebase Admin SDK targeting the emulator
 admin.initializeApp({
-  projectId: 'cappla-app'
+  projectId: process.env.GCP_PROJECT || 'demo-cappla-app'
 });
 
 const db = admin.firestore();
@@ -91,7 +91,7 @@ const CATEGORIES = [
     ownerOrgUnitId: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
     sharedOrgUnitIds: [],
     appliedOrgUnitIds: ['e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d'],
-    statusMap: {'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d': 'Active'},
+    statusMap: { 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d': 'Active' },
     createdBy: 'system',
     createdAt: new Date().toISOString(),
     lastModifiedBy: 'system',
@@ -104,7 +104,7 @@ const CATEGORIES = [
     ownerOrgUnitId: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
     sharedOrgUnitIds: [],
     appliedOrgUnitIds: ['e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d'],
-    statusMap: {'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d': 'Active'},
+    statusMap: { 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d': 'Active' },
     createdBy: 'system',
     createdAt: new Date().toISOString(),
     lastModifiedBy: 'system',
@@ -117,7 +117,7 @@ const CATEGORIES = [
     ownerOrgUnitId: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
     sharedOrgUnitIds: [],
     appliedOrgUnitIds: ['e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d'],
-    statusMap: {'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d': 'Active'},
+    statusMap: { 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d': 'Active' },
     createdBy: 'system',
     createdAt: new Date().toISOString(),
     lastModifiedBy: 'system',
@@ -130,7 +130,7 @@ const CATEGORIES = [
     ownerOrgUnitId: 'c8c88f6f-2b72-4d7a-b50a-9d7a188f6f7d',
     sharedOrgUnitIds: [],
     appliedOrgUnitIds: ['c8c88f6f-2b72-4d7a-b50a-9d7a188f6f7d'],
-    statusMap: {'c8c88f6f-2b72-4d7a-b50a-9d7a188f6f7d': 'Active'},
+    statusMap: { 'c8c88f6f-2b72-4d7a-b50a-9d7a188f6f7d': 'Active' },
     createdBy: 'system',
     createdAt: new Date().toISOString(),
     lastModifiedBy: 'system',
@@ -143,7 +143,7 @@ const CATEGORIES = [
     ownerOrgUnitId: 'c8c88f6f-2b72-4d7a-b50a-9d7a188f6f7d',
     sharedOrgUnitIds: [],
     appliedOrgUnitIds: ['c8c88f6f-2b72-4d7a-b50a-9d7a188f6f7d'],
-    statusMap: {'c8c88f6f-2b72-4d7a-b50a-9d7a188f6f7d': 'Active'},
+    statusMap: { 'c8c88f6f-2b72-4d7a-b50a-9d7a188f6f7d': 'Active' },
     createdBy: 'system',
     createdAt: new Date().toISOString(),
     lastModifiedBy: 'system',
@@ -326,7 +326,7 @@ const ACTIVITIES = [
     ownerOrgUnitId: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
     sharedOrgUnitIds: [],
     appliedOrgUnitIds: ['e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d'],
-    statusMap: {'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d': 'Active'},
+    statusMap: { 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d': 'Active' },
     createdBy: 'system',
     createdAt: new Date().toISOString(),
     lastModifiedBy: 'system',
@@ -343,7 +343,7 @@ const ACTIVITIES = [
     ownerOrgUnitId: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
     sharedOrgUnitIds: [],
     appliedOrgUnitIds: ['e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d'],
-    statusMap: {'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d': 'Active'},
+    statusMap: { 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d': 'Active' },
     createdBy: 'system',
     createdAt: new Date().toISOString(),
     lastModifiedBy: 'system',

@@ -27,6 +27,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   String? _lastLoc;
 
   bool _isCapacityEditing = false;
+  int _currentPage = 1;
+  int? _selectedYearFilter;
   bool _tappedInteractive = false;
   List<UserCapacityModel> _editableCapacities = [];
   final List<String> _deletedCapacityIds = [];
@@ -120,6 +122,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     }
     return value.toStringAsFixed(1);
   }
+
 
   void _initCapacityControllers() {
     _capacityControllers.clear();
@@ -491,8 +494,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         bool updated = false;
         for (int r = _selectedRange!.minRow; r <= _selectedRange!.maxRow; r++) {
           if (r == 0) continue; // Skip header row
-          if (r - 1 >= _editableCapacities.length) break;
-          var cap = _editableCapacities[r - 1];
+          if (r - 1 >= _currentCapacities.length) break;
+          final displayedCap = _currentCapacities[r - 1];
+          final editIdx = _editableCapacities.indexWhere((c) => c.id == displayedCap.id);
+          if (editIdx == -1) continue;
+          var cap = _editableCapacities[editIdx];
           for (
             int c = _selectedRange!.minCol;
             c <= _selectedRange!.maxCol;
@@ -509,7 +515,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             }
             updated = true;
           }
-          _editableCapacities[r - 1] = cap;
+          _editableCapacities[editIdx] = cap;
         }
         if (updated) {
           setState(() {});
@@ -528,10 +534,13 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
       final targetRow = startRow + i;
       if (targetRow == 0) continue; // Skip header row
-      if (targetRow - 1 >= _editableCapacities.length) break;
+      if (targetRow - 1 >= _currentCapacities.length) break;
+      final displayedCap = _currentCapacities[targetRow - 1];
+      final editIdx = _editableCapacities.indexWhere((c) => c.id == displayedCap.id);
+      if (editIdx == -1) continue;
 
       final cells = rowText.split('\t');
-      var cap = _editableCapacities[targetRow - 1];
+      var cap = _editableCapacities[editIdx];
 
       for (int j = 0; j < cells.length; j++) {
         final targetCol = startCol + j;
@@ -558,7 +567,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           }
         }
       }
-      _editableCapacities[targetRow - 1] = cap;
+      _editableCapacities[editIdx] = cap;
     }
 
     if (updated) {
@@ -580,8 +589,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     bool updated = false;
     for (int r = _dragFillRange!.minRow; r <= _dragFillRange!.maxRow; r++) {
       if (r == 0) continue; // Skip header row
-      if (r - 1 >= _editableCapacities.length) break;
-      var cap = _editableCapacities[r - 1];
+      if (r - 1 >= _currentCapacities.length) break;
+      final displayedCap = _currentCapacities[r - 1];
+      final targetIdx = _editableCapacities.indexWhere((c) => c.id == displayedCap.id);
+      if (targetIdx == -1) continue;
+      var cap = _editableCapacities[targetIdx];
 
       for (int c = _dragFillRange!.minCol; c <= _dragFillRange!.maxCol; c++) {
         if (c == 0 || c >= 8) continue; // Skip Period and Sum
@@ -599,8 +611,13 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
         if (srcR == 0) continue; // Skip header row as source
         if (srcC == 0 || srcC >= 8) continue; // Skip Period and Sum for source
+        if (srcR - 1 >= _currentCapacities.length) continue;
 
-        final sourceCap = _editableCapacities[srcR - 1];
+        final sourceDisplayedCap = _currentCapacities[srcR - 1];
+        final srcIdx = _editableCapacities.indexWhere((c) => c.id == sourceDisplayedCap.id);
+        if (srcIdx == -1) continue;
+        final sourceCap = _editableCapacities[srcIdx];
+
         final dayName = _columnDays[srcC - 1];
         final sourceVal = _getDayValue(sourceCap, dayName);
 
@@ -615,7 +632,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         }
         updated = true;
       }
-      _editableCapacities[r - 1] = cap;
+      _editableCapacities[targetIdx] = cap;
     }
 
     if (updated) {
@@ -693,7 +710,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     int? editIndex,
   }) {
     final isEditingRow = editIndex != null;
-    final initialCap = isEditingRow ? _editableCapacities[editIndex] : null;
+    final initialCap = isEditingRow ? _currentCapacities[editIndex] : null;
 
     DateTime? validityStart = initialCap?.startDate ?? DateTime.now();
     DateTime? validityEnd =
@@ -849,8 +866,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         idx < _editableCapacities.length;
                         idx++
                       ) {
-                        if (idx == editIndex) continue;
                         final other = _editableCapacities[idx];
+                        if (other.id == initialCap!.id) continue;
                         if (other.type != 'Specific') continue;
                         final s2 = DateTime(
                           other.startDate!.year,
@@ -898,13 +915,16 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     }
 
                     if (isEditingRow) {
-                      setState(() {
-                        _editableCapacities[editIndex] =
-                            _editableCapacities[editIndex].copyWith(
-                              startDate: () => s1,
-                              endDate: () => e1,
-                            );
-                      });
+                      final editIdxInEditable = _editableCapacities.indexWhere((c) => c.id == initialCap!.id);
+                      if (editIdxInEditable != -1) {
+                        setState(() {
+                          _editableCapacities[editIdxInEditable] =
+                              _editableCapacities[editIdxInEditable].copyWith(
+                                startDate: () => s1,
+                                endDate: () => e1,
+                              );
+                        });
+                      }
                     } else {
                       final id = const Uuid().v4();
                       final now = DateTime.now();
@@ -967,7 +987,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         width: 1.5,
       );
       final gridBorderSide = BorderSide(
-        color: theme.colorScheme.outlineVariant,
+        color: theme.colorScheme.primary,
         width: 0.5,
       );
       cellDeco = BoxDecoration(
@@ -988,7 +1008,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         width: 1.5,
       );
       final gridBorderSide = BorderSide(
-        color: theme.colorScheme.outlineVariant,
+        color: theme.colorScheme.primary,
         width: 0.5,
       );
       cellDeco = BoxDecoration(
@@ -1004,13 +1024,16 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         ),
       );
     }
-
-    final periodText = _formatTimePeriod(cap.startDate, cap.endDate);
-    final Widget cellChild = Text(
-      periodText,
-      key: Key('capacity_period_text_${cap.id}'),
-      textAlign: TextAlign.start,
-    );
+final periodText = _formatTimePeriod(cap.startDate, cap.endDate);
+final Widget cellChild = Text(
+  periodText,
+  key: Key('capacity_period_text_${cap.id}'),
+  textAlign: TextAlign.start,
+  style: TextStyle(
+    color: theme.colorScheme.primary,
+    fontWeight: cap.type == 'Standard' ? FontWeight.bold : FontWeight.normal,
+  ),
+);
 
     final controller = MenuController();
 
@@ -1159,7 +1182,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         width: 1.5,
       );
       final gridBorderSide = BorderSide(
-        color: theme.colorScheme.outlineVariant,
+        color: theme.colorScheme.primary,
         width: 0.5,
       );
       cellDeco = BoxDecoration(
@@ -1180,7 +1203,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         width: 1.5,
       );
       final gridBorderSide = BorderSide(
-        color: theme.colorScheme.outlineVariant,
+        color: theme.colorScheme.primary,
         width: 0.5,
       );
       cellDeco = BoxDecoration(
@@ -1205,11 +1228,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         _selectedRange!.start.col == c &&
         (_cellEditMode == CellEditMode.typingFromType ||
             _cellEditMode == CellEditMode.typingFromDouble);
-
-    final cellStyle = theme.textTheme.bodyMedium?.copyWith(
-      color: theme.colorScheme.onSurface,
-      fontSize: 14,
-    );
+final cellStyle = theme.textTheme.bodyMedium?.copyWith(
+  color: theme.colorScheme.primary,
+  fontSize: 14,
+);
 
     final focusNode = (_isCapacityEditing && _isCellEditable(r, c))
         ? _getOrCreateFocusNode('${cap.id}_$dayName')
@@ -1575,53 +1597,52 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         _dragFillRange != null &&
         _dragFillRange!.contains(0, c) &&
         !_isCapacityEditing;
-
-    BoxDecoration? cellDeco;
-    if (isSelected) {
-      final borderSide = BorderSide(
-        color: theme.colorScheme.primary,
-        width: 1.5,
-      );
-      final gridBorderSide = BorderSide(
-        color: theme.colorScheme.outlineVariant,
-        width: 0.5,
-      );
-      cellDeco = BoxDecoration(
-        color: Color.alphaBlend(
-          theme.colorScheme.primary.withValues(alpha: 0.12),
-          theme.colorScheme.surfaceContainer,
-        ),
-        border: Border(
-          top: borderSide,
-          bottom: 0 == _selectedRange!.maxRow ? borderSide : gridBorderSide,
-          left: c == _selectedRange!.minCol ? borderSide : BorderSide.none,
-          right: c == _selectedRange!.maxCol ? borderSide : BorderSide.none,
-        ),
-      );
-    } else if (isDragFill) {
-      final borderSide = BorderSide(
-        color: theme.colorScheme.secondary,
-        width: 1.5,
-      );
-      final gridBorderSide = BorderSide(
-        color: theme.colorScheme.outlineVariant,
-        width: 0.5,
-      );
-      cellDeco = BoxDecoration(
-        color: Color.alphaBlend(
-          theme.colorScheme.secondary.withValues(alpha: 0.12),
-          theme.colorScheme.surfaceContainer,
-        ),
-        border: Border(
-          top: borderSide,
-          bottom: 0 == _dragFillRange!.maxRow ? borderSide : gridBorderSide,
-          left: c == _dragFillRange!.minCol ? borderSide : BorderSide.none,
-          right: c == _dragFillRange!.maxCol ? borderSide : BorderSide.none,
-        ),
-      );
-    } else {
-      cellDeco = BoxDecoration(color: theme.colorScheme.surfaceContainer);
-    }
+BoxDecoration? cellDeco;
+if (isSelected) {
+  final borderSide = BorderSide(
+    color: theme.colorScheme.primary,
+    width: 1.5,
+  );
+  final gridBorderSide = BorderSide(
+    color: theme.colorScheme.primary,
+    width: 0.5,
+  );
+  cellDeco = BoxDecoration(
+    color: Color.alphaBlend(
+      theme.colorScheme.primary.withValues(alpha: 0.12),
+      Colors.white,
+    ),
+    border: Border(
+      top: borderSide,
+      bottom: 0 == _selectedRange!.maxRow ? borderSide : gridBorderSide,
+      left: c == _selectedRange!.minCol ? borderSide : BorderSide.none,
+      right: c == _selectedRange!.maxCol ? borderSide : BorderSide.none,
+    ),
+  );
+} else if (isDragFill) {
+  final borderSide = BorderSide(
+    color: theme.colorScheme.secondary,
+    width: 1.5,
+  );
+  final gridBorderSide = BorderSide(
+    color: theme.colorScheme.primary,
+    width: 0.5,
+  );
+  cellDeco = BoxDecoration(
+    color: Color.alphaBlend(
+      theme.colorScheme.secondary.withValues(alpha: 0.12),
+      Colors.white,
+    ),
+    border: Border(
+      top: borderSide,
+      bottom: 0 == _dragFillRange!.maxRow ? borderSide : gridBorderSide,
+      left: c == _dragFillRange!.minCol ? borderSide : BorderSide.none,
+      right: c == _dragFillRange!.maxCol ? borderSide : BorderSide.none,
+    ),
+  );
+} else {
+  cellDeco = const BoxDecoration(color: Colors.white);
+}
 
     final controller = MenuController();
     final isRightHalf = c >= 4;
@@ -1724,7 +1745,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         width: 1.5,
       );
       final gridBorderSide = BorderSide(
-        color: theme.colorScheme.outlineVariant,
+        color: theme.colorScheme.primary,
         width: 0.5,
       );
       cellDeco = BoxDecoration(
@@ -1745,7 +1766,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         width: 1.5,
       );
       final gridBorderSide = BorderSide(
-        color: theme.colorScheme.outlineVariant,
+        color: theme.colorScheme.primary,
         width: 0.5,
       );
       cellDeco = BoxDecoration(
@@ -1761,15 +1782,17 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         ),
       );
     }
-
-    final Widget sumChild = Center(
-      child: Text(
-        sumStr,
-        key: Key('capacity_sum_${cap.id}'),
-        textAlign: TextAlign.center,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
-    );
+final Widget sumChild = Center(
+  child: Text(
+    sumStr,
+    key: Key('capacity_sum_${cap.id}'),
+    textAlign: TextAlign.center,
+    style: TextStyle(
+      fontWeight: FontWeight.bold,
+      color: theme.colorScheme.primary,
+    ),
+  ),
+);
 
     final controller = MenuController();
 
@@ -1931,7 +1954,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       Text(
                         'My Profile',
                         style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                       ),
                       if (!isEditing)
                         FilledButton(
@@ -2146,6 +2172,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         'My Capacity',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                       if (user != null)
@@ -2286,25 +2313,204 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         data: (dbCapacities) {
                           final theme = Theme.of(context);
 
-                          final displayedList = _isCapacityEditing
+                          final allSource = _isCapacityEditing
                               ? _editableCapacities
-                              : (() {
-                                  final sorted = List<UserCapacityModel>.from(
-                                    dbCapacities,
-                                  );
-                                  sorted.sort((a, b) {
-                                    if (a.type == 'Standard') return -1;
-                                    if (b.type == 'Standard') return 1;
-                                    return (a.startDate ?? DateTime.now())
-                                        .compareTo(
-                                          b.startDate ?? DateTime.now(),
-                                        );
-                                  });
-                                  return sorted;
-                                })();
+                              : dbCapacities;
 
-                          return LayoutBuilder(
-                            builder: (context, constraints) {
+                          final sortedSource = List<UserCapacityModel>.from(allSource);
+                          sortedSource.sort((a, b) {
+                            if (a.type == 'Standard') return -1;
+                            if (b.type == 'Standard') return 1;
+                            return (a.startDate ?? DateTime.now())
+                                .compareTo(b.startDate ?? DateTime.now());
+                          });
+
+                          final standardCaps = sortedSource.where((c) => c.type == 'Standard').toList();
+                          final specificCaps = sortedSource.where((c) => c.type != 'Standard').toList();
+
+                          // Dynamic years collection ONLY from custom capacities:
+                          final yearsSet = <int>{};
+                          for (final cap in specificCaps) {
+                            if (cap.startDate != null) yearsSet.add(cap.startDate!.year);
+                            if (cap.endDate != null) yearsSet.add(cap.endDate!.year);
+                          }
+                          final sortedYears = yearsSet.toList()..sort();
+
+                          // Apply the selected year filter (if any)
+                          List<UserCapacityModel> filteredSpecifics = specificCaps;
+                          if (_selectedYearFilter != null) {
+                            filteredSpecifics = specificCaps.where((cap) {
+                              final startYear = cap.startDate?.year;
+                              final endYear = cap.endDate?.year;
+                              return (startYear == null || startYear <= _selectedYearFilter!) &&
+                                     (endYear == null || endYear >= _selectedYearFilter!);
+                            }).toList();
+                          }
+
+                          final totalSpecifics = filteredSpecifics.length;
+                          final maxPage = (totalSpecifics / 5).ceil().clamp(1, 9999);
+                          if (_currentPage > maxPage) {
+                            _currentPage = maxPage;
+                          }
+
+                          final paginatedSpecifics = filteredSpecifics
+                              .skip((_currentPage - 1) * 5)
+                              .take(5)
+                              .toList();
+
+                          final displayedList = [
+                            ...standardCaps,
+                            ...paginatedSpecifics,
+                          ];
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (specificCaps.isNotEmpty) ...[
+                                Wrap(
+                                  spacing: 16,
+                                  runSpacing: 16,
+                                  alignment: WrapAlignment.spaceBetween,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    MenuAnchor(
+                                      builder: (context, controller, child) {
+                                        final bool isSelected =
+                                            _selectedYearFilter != null;
+                                        return FilterChip(
+                                          key: const Key(
+                                            'profile_capacity_year_filter_dropdown',
+                                          ),
+                                          label: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                _selectedYearFilter
+                                                        ?.toString() ??
+                                                    'Year',
+                                                style: TextStyle(
+                                                  color:
+                                                      isSelected
+                                                          ? Colors.white
+                                                          : null,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Icon(
+                                                Icons.arrow_drop_down,
+                                                size: 18,
+                                                color:
+                                                    isSelected
+                                                        ? Colors.white
+                                                        : null,
+                                              ),
+                                            ],
+                                          ),
+                                          selected: isSelected,
+                                          onSelected: (selected) {
+                                            if (controller.isOpen) {
+                                              controller.close();
+                                            } else {
+                                              controller.open();
+                                            }
+                                          },
+                                        );
+                                      },
+                                      menuChildren: [
+                                        MenuItemButton(
+                                          key: const Key(
+                                            'profile_capacity_year_filter_all_item',
+                                          ),
+                                          onPressed:
+                                              () => setState(() {
+                                                _selectedYearFilter = null;
+                                                _currentPage = 1;
+                                              }),
+                                          child: const Text('All'),
+                                        ),
+                                        ...sortedYears.map((year) {
+                                          return MenuItemButton(
+                                            key: Key(
+                                              'profile_capacity_year_filter_item_$year',
+                                            ),
+                                            onPressed:
+                                                () => setState(() {
+                                                  _selectedYearFilter = year;
+                                                  _currentPage = 1;
+                                                }),
+                                            child: Text(year.toString()),
+                                          );
+                                        }),
+                                      ],
+                                    ),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          totalSpecifics == 0
+                                              ? '0 of 0'
+                                              : '${(_currentPage - 1) * 5 + 1}-${((_currentPage * 5) > totalSpecifics) ? totalSpecifics : (_currentPage * 5)} of $totalSpecifics',
+                                          key: const Key(
+                                            'profile_capacity_pagination_displayed_count',
+                                          ),
+                                          style: theme.textTheme.bodyMedium,
+                                        ),
+                                        const SizedBox(width: 16),
+                                        IconButton(
+                                          key: const Key(
+                                            'profile_capacity_page_back',
+                                          ),
+                                          icon: const Icon(Icons.chevron_left),
+                                          onPressed:
+                                              _currentPage > 1
+                                                  ? () => setState(
+                                                    () => _currentPage--,
+                                                  )
+                                                  : null,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        PageIndicatorInput(
+                                          currentPage: _currentPage,
+                                          maxPage: maxPage,
+                                          onPageChanged:
+                                              (page) => setState(
+                                                () => _currentPage = page,
+                                              ),
+                                          inputKey: const Key(
+                                            'profile_capacity_pagination_pages_input',
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          '/ $maxPage',
+                                          key: const Key(
+                                            'profile_capacity_pagination_pages',
+                                          ),
+                                          style: theme.textTheme.bodyMedium,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        IconButton(
+                                          key: const Key(
+                                            'profile_capacity_page_forward',
+                                          ),
+                                          icon: const Icon(Icons.chevron_right),
+                                          onPressed:
+                                              _currentPage < maxPage
+                                                  ? () => setState(
+                                                    () => _currentPage++,
+                                                  )
+                                                  : null,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                              LayoutBuilder(
+                                builder: (context, constraints) {
                               final totalWidth = constraints.maxWidth;
                               final availableWidth = totalWidth - 84;
                               final periodWidth = availableWidth * 0.2;
@@ -2432,18 +2638,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                             key: _headerRowKey,
                                             height: 48,
                                             decoration: BoxDecoration(
-                                              color: theme
-                                                  .colorScheme
-                                                  .surfaceContainer,
-                                              borderRadius:
-                                                  const BorderRadius.vertical(
-                                                    top: Radius.circular(12),
-                                                  ),
-                                              border: Border.all(
-                                                color: theme
-                                                    .colorScheme
-                                                    .outlineVariant,
-                                                width: 0.5,
+                                              color: Colors.white,
+                                              border: Border(
+                                                bottom: BorderSide(
+                                                  color: theme.colorScheme.primary,
+                                                  width: 2.0,
+                                                ),
                                               ),
                                             ),
                                             padding: const EdgeInsets.symmetric(
@@ -2458,8 +2658,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                       GlobalKey(),
                                                   alignment:
                                                       Alignment.centerLeft,
-                                                  child: const Padding(
-                                                    padding: EdgeInsets.only(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.only(
                                                       left: 8.0,
                                                     ),
                                                     child: Text(
@@ -2467,6 +2667,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                       style: TextStyle(
                                                         fontWeight:
                                                             FontWeight.bold,
+                                                        color: theme.colorScheme.primary,
                                                       ),
                                                     ),
                                                   ),
@@ -2476,11 +2677,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                   width: cellWidth,
                                                   key: _colKeys[1] ??=
                                                       GlobalKey(),
-                                                  child: const Text(
+                                                  child: Text(
                                                     'Monday',
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
+                                                      color: theme.colorScheme.primary,
                                                     ),
                                                   ),
                                                 ),
@@ -2489,11 +2691,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                   width: cellWidth,
                                                   key: _colKeys[2] ??=
                                                       GlobalKey(),
-                                                  child: const Text(
+                                                  child: Text(
                                                     'Tuesday',
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
+                                                      color: theme.colorScheme.primary,
                                                     ),
                                                   ),
                                                 ),
@@ -2502,11 +2705,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                   width: cellWidth,
                                                   key: _colKeys[3] ??=
                                                       GlobalKey(),
-                                                  child: const Text(
+                                                  child: Text(
                                                     'Wednesday',
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
+                                                      color: theme.colorScheme.primary,
                                                     ),
                                                   ),
                                                 ),
@@ -2515,11 +2719,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                   width: cellWidth,
                                                   key: _colKeys[4] ??=
                                                       GlobalKey(),
-                                                  child: const Text(
+                                                  child: Text(
                                                     'Thursday',
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
+                                                      color: theme.colorScheme.primary,
                                                     ),
                                                   ),
                                                 ),
@@ -2528,11 +2733,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                   width: cellWidth,
                                                   key: _colKeys[5] ??=
                                                       GlobalKey(),
-                                                  child: const Text(
+                                                  child: Text(
                                                     'Friday',
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
+                                                      color: theme.colorScheme.primary,
                                                     ),
                                                   ),
                                                 ),
@@ -2541,11 +2747,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                   width: cellWidth,
                                                   key: _colKeys[6] ??=
                                                       GlobalKey(),
-                                                  child: const Text(
+                                                  child: Text(
                                                     'Saturday',
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
+                                                      color: theme.colorScheme.primary,
                                                     ),
                                                   ),
                                                 ),
@@ -2554,11 +2761,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                   width: cellWidth,
                                                   key: _colKeys[7] ??=
                                                       GlobalKey(),
-                                                  child: const Text(
+                                                  child: Text(
                                                     'Sunday',
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
+                                                      color: theme.colorScheme.primary,
                                                     ),
                                                   ),
                                                 ),
@@ -2567,11 +2775,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                   width: cellWidth,
                                                   key: _colKeys[8] ??=
                                                       GlobalKey(),
-                                                  child: const Text(
+                                                  child: Text(
                                                     'Sum',
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
+                                                      color: theme.colorScheme.primary,
                                                     ),
                                                   ),
                                                 ),
@@ -2585,22 +2794,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                               padding: const EdgeInsets.all(32),
                                               decoration: BoxDecoration(
                                                 border: Border(
-                                                  left: BorderSide(
-                                                    color: theme
-                                                        .colorScheme
-                                                        .outlineVariant,
-                                                    width: 0.5,
-                                                  ),
-                                                  right: BorderSide(
-                                                    color: theme
-                                                        .colorScheme
-                                                        .outlineVariant,
-                                                    width: 0.5,
-                                                  ),
                                                   bottom: BorderSide(
-                                                    color: theme
-                                                        .colorScheme
-                                                        .outlineVariant,
+                                                    color: theme.colorScheme.primary,
                                                     width: 0.5,
                                                   ),
                                                 ),
@@ -2623,22 +2818,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                 height: 48,
                                                 decoration: BoxDecoration(
                                                   border: Border(
-                                                    left: BorderSide(
-                                                      color: theme
-                                                          .colorScheme
-                                                          .outlineVariant,
-                                                      width: 0.5,
-                                                    ),
-                                                    right: BorderSide(
-                                                      color: theme
-                                                          .colorScheme
-                                                          .outlineVariant,
-                                                      width: 0.5,
-                                                    ),
                                                     bottom: BorderSide(
-                                                      color: theme
-                                                          .colorScheme
-                                                          .outlineVariant,
+                                                      color: theme.colorScheme.primary,
                                                       width: 0.5,
                                                     ),
                                                   ),
@@ -2659,13 +2840,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                       idx,
                                                       'monday',
                                                       () => cap.monday,
-                                                      (
-                                                        v,
-                                                      ) => _editableCapacities[idx] =
-                                                          _editableCapacities[idx]
-                                                              .copyWith(
-                                                                monday: v,
-                                                              ),
+                                                      (v) {
+                                                        final targetIndex = _editableCapacities.indexWhere((c) => c.id == cap.id);
+                                                        if (targetIndex != -1) {
+                                                          _editableCapacities[targetIndex] = _editableCapacities[targetIndex].copyWith(monday: v);
+                                                        }
+                                                      },
                                                       cellWidth,
                                                     ),
                                                     _buildDayCell(
@@ -2673,13 +2853,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                       idx,
                                                       'tuesday',
                                                       () => cap.tuesday,
-                                                      (
-                                                        v,
-                                                      ) => _editableCapacities[idx] =
-                                                          _editableCapacities[idx]
-                                                              .copyWith(
-                                                                tuesday: v,
-                                                              ),
+                                                      (v) {
+                                                        final targetIndex = _editableCapacities.indexWhere((c) => c.id == cap.id);
+                                                        if (targetIndex != -1) {
+                                                          _editableCapacities[targetIndex] = _editableCapacities[targetIndex].copyWith(tuesday: v);
+                                                        }
+                                                      },
                                                       cellWidth,
                                                     ),
                                                     _buildDayCell(
@@ -2687,13 +2866,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                       idx,
                                                       'wednesday',
                                                       () => cap.wednesday,
-                                                      (
-                                                        v,
-                                                      ) => _editableCapacities[idx] =
-                                                          _editableCapacities[idx]
-                                                              .copyWith(
-                                                                wednesday: v,
-                                                              ),
+                                                      (v) {
+                                                        final targetIndex = _editableCapacities.indexWhere((c) => c.id == cap.id);
+                                                        if (targetIndex != -1) {
+                                                          _editableCapacities[targetIndex] = _editableCapacities[targetIndex].copyWith(wednesday: v);
+                                                        }
+                                                      },
                                                       cellWidth,
                                                     ),
                                                     _buildDayCell(
@@ -2701,13 +2879,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                       idx,
                                                       'thursday',
                                                       () => cap.thursday,
-                                                      (
-                                                        v,
-                                                      ) => _editableCapacities[idx] =
-                                                          _editableCapacities[idx]
-                                                              .copyWith(
-                                                                thursday: v,
-                                                              ),
+                                                      (v) {
+                                                        final targetIndex = _editableCapacities.indexWhere((c) => c.id == cap.id);
+                                                        if (targetIndex != -1) {
+                                                          _editableCapacities[targetIndex] = _editableCapacities[targetIndex].copyWith(thursday: v);
+                                                        }
+                                                      },
                                                       cellWidth,
                                                     ),
                                                     _buildDayCell(
@@ -2715,13 +2892,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                       idx,
                                                       'friday',
                                                       () => cap.friday,
-                                                      (
-                                                        v,
-                                                      ) => _editableCapacities[idx] =
-                                                          _editableCapacities[idx]
-                                                              .copyWith(
-                                                                friday: v,
-                                                              ),
+                                                      (v) {
+                                                        final targetIndex = _editableCapacities.indexWhere((c) => c.id == cap.id);
+                                                        if (targetIndex != -1) {
+                                                          _editableCapacities[targetIndex] = _editableCapacities[targetIndex].copyWith(friday: v);
+                                                        }
+                                                      },
                                                       cellWidth,
                                                     ),
                                                     _buildDayCell(
@@ -2729,13 +2905,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                       idx,
                                                       'saturday',
                                                       () => cap.saturday,
-                                                      (
-                                                        v,
-                                                      ) => _editableCapacities[idx] =
-                                                          _editableCapacities[idx]
-                                                              .copyWith(
-                                                                saturday: v,
-                                                              ),
+                                                      (v) {
+                                                        final targetIndex = _editableCapacities.indexWhere((c) => c.id == cap.id);
+                                                        if (targetIndex != -1) {
+                                                          _editableCapacities[targetIndex] = _editableCapacities[targetIndex].copyWith(saturday: v);
+                                                        }
+                                                      },
                                                       cellWidth,
                                                     ),
                                                     _buildDayCell(
@@ -2743,13 +2918,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                       idx,
                                                       'sunday',
                                                       () => cap.sunday,
-                                                      (
-                                                        v,
-                                                      ) => _editableCapacities[idx] =
-                                                          _editableCapacities[idx]
-                                                              .copyWith(
-                                                                sunday: v,
-                                                              ),
+                                                      (v) {
+                                                        final targetIndex = _editableCapacities.indexWhere((c) => c.id == cap.id);
+                                                        if (targetIndex != -1) {
+                                                          _editableCapacities[targetIndex] = _editableCapacities[targetIndex].copyWith(sunday: v);
+                                                        }
+                                                      },
                                                       cellWidth,
                                                     ),
                                                     _buildSumCell(
@@ -2778,10 +2952,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                                                 ),
                                                                 onPressed: () {
                                                                   setState(() {
-                                                                    _editableCapacities
-                                                                        .removeAt(
-                                                                          idx,
-                                                                        );
+                                                                    _editableCapacities.removeWhere((c) => c.id == cap.id);
                                                                     if (!cap.id.startsWith(
                                                                           'temp_',
                                                                         ) &&
@@ -2810,8 +2981,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                 ),
                               );
                             },
-                          );
-                        },
+                          ),
+                        ],
+                      );
+                    },
                         loading: () =>
                             _buildProfileTableSkeleton(Theme.of(context)),
                         error: (err, stack) =>
@@ -3060,3 +3233,78 @@ class _CellRange {
     return r >= minRow && r <= maxRow && c >= minCol && c <= maxCol;
   }
 }
+
+class PageIndicatorInput extends StatefulWidget {
+  final int currentPage;
+  final int maxPage;
+  final ValueChanged<int> onPageChanged;
+  final Key? inputKey;
+
+  const PageIndicatorInput({
+    super.key,
+    required this.currentPage,
+    required this.maxPage,
+    required this.onPageChanged,
+    this.inputKey,
+  });
+
+  @override
+  State<PageIndicatorInput> createState() => _PageIndicatorInputState();
+}
+
+class _PageIndicatorInputState extends State<PageIndicatorInput> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.currentPage.toString());
+  }
+
+  @override
+  void didUpdateWidget(covariant PageIndicatorInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentPage != widget.currentPage) {
+      _controller.text = widget.currentPage.toString();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: 48,
+      child: TextField(
+        key: widget.inputKey,
+        controller: _controller,
+        textAlign: TextAlign.center,
+        textAlignVertical: TextAlignVertical.center,
+        keyboardType: TextInputType.number,
+        style: theme.textTheme.bodyMedium,
+        decoration: InputDecoration(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 4,
+            vertical: 6,
+          ),
+          isDense: true,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
+        ),
+        onSubmitted: (val) {
+          final page = int.tryParse(val);
+          if (page != null && page >= 1 && page <= widget.maxPage) {
+            widget.onPageChanged(page);
+          } else {
+            _controller.text = widget.currentPage.toString();
+          }
+        },
+      ),
+    );
+  }
+}
+

@@ -120,7 +120,7 @@ class _ActivityGroupDetailViewState
                   ),
                   Text(
                     ' / ${group.name}',
-                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                    style: TextStyle(color: theme.colorScheme.primary),
                   ),
                 ],
               ),
@@ -142,18 +142,20 @@ class _ActivityGroupDetailViewState
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      FilledButton(
-                        key: const Key('activity_group_detail_edit_button'),
-                        onPressed: () {
-                          context.go(
-                            RouterPaths.settingsActivityGroupsEditPath(
-                              group.id,
-                            ),
-                          );
-                        },
-                        child: const Text('Edit'),
-                      ),
-                      const SizedBox(width: 8),
+                      if (isOwner) ...[
+                        FilledButton(
+                          key: const Key('activity_group_detail_edit_button'),
+                          onPressed: () {
+                            context.go(
+                              RouterPaths.settingsActivityGroupsEditPath(
+                                group.id,
+                              ),
+                            );
+                          },
+                          child: const Text('Edit'),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
                       Directionality(
                         textDirection: TextDirection.rtl,
                         child: MenuAnchor(
@@ -240,66 +242,67 @@ class _ActivityGroupDetailViewState
                                 ),
                               ),
                             ),
-                            Directionality(
-                              textDirection: TextDirection.ltr,
-                              child: MenuItemButton(
-                                key: Key('activity_group_detail_share_item'),
-                                onPressed: () async {
-                                  const val = 'share';
-                                  if (val == 'toggle') {
-                                    final newStatus = groupStatus == 'Active'
-                                        ? 'Inactive'
-                                        : 'Active';
-                                    final newStatusMap =
-                                        Map<String, String>.from(
-                                          group.statusMap,
-                                        )..[myOrg.id] = newStatus;
-                                    await ref
-                                        .read(databaseServiceProvider)
-                                        .saveActivityGroup(
-                                          group.copyWith(
-                                            statusMap: newStatusMap,
-                                            lastModifiedBy:
-                                                user?.email ?? 'system',
-                                            lastModifiedAt: DateTime.now(),
-                                          ),
-                                        );
-                                  } else if (val == 'share') {
-                                    _showShareGroupModal(group);
-                                  } else if (val == 'delete') {
-                                    try {
+                            if (isOwner)
+                              Directionality(
+                                textDirection: TextDirection.ltr,
+                                child: MenuItemButton(
+                                  key: Key('activity_group_detail_share_item'),
+                                  onPressed: () async {
+                                    const val = 'share';
+                                    if (val == 'toggle') {
+                                      final newStatus = groupStatus == 'Active'
+                                          ? 'Inactive'
+                                          : 'Active';
+                                      final newStatusMap =
+                                          Map<String, String>.from(
+                                            group.statusMap,
+                                          )..[myOrg.id] = newStatus;
                                       await ref
                                           .read(databaseServiceProvider)
-                                          .deleteActivityGroup(
-                                            group.id,
-                                            myOrg.id,
+                                          .saveActivityGroup(
+                                            group.copyWith(
+                                              statusMap: newStatusMap,
+                                              lastModifiedBy:
+                                                  user?.email ?? 'system',
+                                              lastModifiedAt: DateTime.now(),
+                                            ),
                                           );
-                                      if (context.mounted) {
-                                        context.go(
-                                          RouterPaths.settingsActivityGroups,
-                                        );
-                                      }
-                                    } catch (e) {
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              e.toString().replaceAll(
-                                                'Exception: ',
-                                                '',
+                                    } else if (val == 'share') {
+                                      _showShareGroupModal(group);
+                                    } else if (val == 'delete') {
+                                      try {
+                                        await ref
+                                            .read(databaseServiceProvider)
+                                            .deleteActivityGroup(
+                                              group.id,
+                                              myOrg.id,
+                                            );
+                                        if (context.mounted) {
+                                          context.go(
+                                            RouterPaths.settingsActivityGroups,
+                                          );
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                e.toString().replaceAll(
+                                                  'Exception: ',
+                                                  '',
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        );
+                                          );
+                                        }
                                       }
                                     }
-                                  }
-                                },
-                                child: Text('Share'),
+                                  },
+                                  child: Text('Share'),
+                                ),
                               ),
-                            ),
                             Directionality(
                               textDirection: TextDirection.ltr,
                               child: MenuItemButton(
@@ -425,7 +428,7 @@ class _ActivityGroupDetailViewState
                           Text(
                             'Status',
                             style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
+                              color: theme.colorScheme.primary,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -617,21 +620,22 @@ class _ActivityGroupDetailViewState
                             );
                           },
                           menuChildren: [
-                            Directionality(
-                              textDirection: TextDirection.ltr,
-                              child: MenuItemButton(
-                                key: Key('activity_list_share_item'),
-                                onPressed: () {
-                                  const val = 'share';
-                                  if (val == 'share') {
-                                    _showShareActivitiesModal(groupActivities);
-                                  } else if (val == 'apply') {
-                                    _showApplyActivitiesModal();
-                                  }
-                                },
-                                child: Text('Share'),
+                            if (isOwner)
+                              Directionality(
+                                textDirection: TextDirection.ltr,
+                                child: MenuItemButton(
+                                  key: Key('activity_list_share_item'),
+                                  onPressed: () {
+                                    const val = 'share';
+                                    if (val == 'share') {
+                                      _showShareActivitiesModal(groupActivities);
+                                    } else if (val == 'apply') {
+                                      _showApplyActivitiesModal();
+                                    }
+                                  },
+                                  child: Text('Share'),
+                                ),
                               ),
-                            ),
                             Directionality(
                               textDirection: TextDirection.ltr,
                               child: MenuItemButton(
@@ -716,13 +720,12 @@ class _ActivityGroupDetailViewState
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainer,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12),
-                      ),
-                      border: Border.all(
-                        color: theme.colorScheme.outlineVariant,
-                        width: 0.5,
+                      color: Colors.white,
+                      border: Border(
+                        bottom: BorderSide(
+                          color: theme.colorScheme.primary,
+                          width: 2.0,
+                        ),
                       ),
                     ),
                     padding: const EdgeInsets.symmetric(
@@ -782,16 +785,8 @@ class _ActivityGroupDetailViewState
                       padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(
                         border: Border(
-                          left: BorderSide(
-                            color: theme.colorScheme.outlineVariant,
-                            width: 0.5,
-                          ),
-                          right: BorderSide(
-                            color: theme.colorScheme.outlineVariant,
-                            width: 0.5,
-                          ),
                           bottom: BorderSide(
-                            color: theme.colorScheme.outlineVariant,
+                            color: theme.colorScheme.primary,
                             width: 0.5,
                           ),
                         ),
@@ -851,18 +846,12 @@ class _ActivityGroupDetailViewState
                           child: Container(
                             decoration: BoxDecoration(
                               border: Border(
-                                left: BorderSide(
-                                  color: theme.colorScheme.outlineVariant,
-                                  width: 0.5,
-                                ),
-                                right: BorderSide(
-                                  color: theme.colorScheme.outlineVariant,
-                                  width: 0.5,
-                                ),
-                                bottom: BorderSide(
-                                  color: theme.colorScheme.outlineVariant,
-                                  width: 0.5,
-                                ),
+                                bottom: idx == displayedActivities.length - 1
+                                    ? BorderSide.none
+                                    : BorderSide(
+                                        color: theme.colorScheme.primary,
+                                        width: 0.5,
+                                      ),
                               ),
                             ),
                             padding: const EdgeInsets.symmetric(
@@ -893,21 +882,23 @@ class _ActivityGroupDetailViewState
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
-                                      FilledButton(
-                                        key: Key(
-                                          'activity_row_edit_button_${act.id}',
+                                      if (actOwner) ...[
+                                        FilledButton(
+                                          key: Key(
+                                            'activity_row_edit_button_${act.id}',
+                                          ),
+                                          onPressed: () {
+                                            context.go(
+                                              RouterPaths.settingsActivitiesEditPath(
+                                                group.id,
+                                                act.id,
+                                              ),
+                                            );
+                                          },
+                                          child: const Text('Edit'),
                                         ),
-                                        onPressed: () {
-                                          context.go(
-                                            RouterPaths.settingsActivitiesEditPath(
-                                              group.id,
-                                              act.id,
-                                            ),
-                                          );
-                                        },
-                                        child: const Text('Edit'),
-                                      ),
-                                      const SizedBox(width: 8),
+                                        const SizedBox(width: 8),
+                                      ],
                                       Directionality(
                                         textDirection: TextDirection.rtl,
                                         child: MenuAnchor(
@@ -1007,78 +998,79 @@ class _ActivityGroupDetailViewState
                                                 ),
                                               ),
                                             ),
-                                            Directionality(
-                                              textDirection: TextDirection.ltr,
-                                              child: MenuItemButton(
-                                                key: Key(
-                                                  'activity_row_share_item_${act.id}',
-                                                ),
-                                                onPressed: () async {
-                                                  const val = 'share';
-                                                  if (val == 'toggle') {
-                                                    final newStatus =
-                                                        actStatus == 'Active'
-                                                        ? 'Inactive'
-                                                        : 'Active';
-                                                    final newStatusMap =
-                                                        Map<
-                                                            String,
-                                                            String
-                                                          >.from(act.statusMap)
-                                                          ..[myOrg.id] =
-                                                              newStatus;
-                                                    await ref
-                                                        .read(
-                                                          databaseServiceProvider,
-                                                        )
-                                                        .saveActivity(
-                                                          act.copyWith(
-                                                            statusMap:
-                                                                newStatusMap,
-                                                            lastModifiedBy:
-                                                                user?.email ??
-                                                                'system',
-                                                            lastModifiedAt:
-                                                                DateTime.now(),
-                                                          ),
-                                                        );
-                                                  } else if (val == 'share') {
-                                                    _showShareActivitiesModal([
-                                                      act,
-                                                    ]);
-                                                  } else if (val == 'delete') {
-                                                    try {
+                                            if (actOwner)
+                                              Directionality(
+                                                textDirection: TextDirection.ltr,
+                                                child: MenuItemButton(
+                                                  key: Key(
+                                                    'activity_row_share_item_${act.id}',
+                                                  ),
+                                                  onPressed: () async {
+                                                    const val = 'share';
+                                                    if (val == 'toggle') {
+                                                      final newStatus =
+                                                          actStatus == 'Active'
+                                                          ? 'Inactive'
+                                                          : 'Active';
+                                                      final newStatusMap =
+                                                          Map<
+                                                              String,
+                                                              String
+                                                            >.from(act.statusMap)
+                                                            ..[myOrg.id] =
+                                                                newStatus;
                                                       await ref
                                                           .read(
                                                             databaseServiceProvider,
                                                           )
-                                                          .deleteActivity(
-                                                            act.id,
-                                                            myOrg.id,
-                                                          );
-                                                    } catch (e) {
-                                                      if (context.mounted) {
-                                                        ScaffoldMessenger.of(
-                                                          context,
-                                                        ).showSnackBar(
-                                                          SnackBar(
-                                                            content: Text(
-                                                              e
-                                                                  .toString()
-                                                                  .replaceAll(
-                                                                    'Exception: ',
-                                                                    '',
-                                                                  ),
+                                                          .saveActivity(
+                                                            act.copyWith(
+                                                              statusMap:
+                                                                  newStatusMap,
+                                                              lastModifiedBy:
+                                                                  user?.email ??
+                                                                  'system',
+                                                              lastModifiedAt:
+                                                                  DateTime.now(),
                                                             ),
-                                                          ),
-                                                        );
+                                                          );
+                                                    } else if (val == 'share') {
+                                                      _showShareActivitiesModal([
+                                                        act,
+                                                      ]);
+                                                    } else if (val == 'delete') {
+                                                      try {
+                                                        await ref
+                                                            .read(
+                                                              databaseServiceProvider,
+                                                            )
+                                                            .deleteActivity(
+                                                              act.id,
+                                                              myOrg.id,
+                                                            );
+                                                      } catch (e) {
+                                                        if (context.mounted) {
+                                                          ScaffoldMessenger.of(
+                                                            context,
+                                                          ).showSnackBar(
+                                                            SnackBar(
+                                                              content: Text(
+                                                                e
+                                                                    .toString()
+                                                                    .replaceAll(
+                                                                      'Exception: ',
+                                                                      '',
+                                                                    ),
+                                                              ),
+                                                            ),
+                                                          );
+                                                        }
                                                       }
                                                     }
-                                                  }
-                                                },
-                                                child: const Text('Share'),
+                                                  },
+                                                  child: const Text('Share'),
+                                                ),
                                               ),
-                                            ),
                                             Directionality(
                                               textDirection: TextDirection.ltr,
                                               child: MenuItemButton(

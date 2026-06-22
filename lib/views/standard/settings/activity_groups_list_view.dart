@@ -249,13 +249,12 @@ class _ActivityGroupsListViewState
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainer,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
-                  border: Border.all(
-                    color: theme.colorScheme.outlineVariant,
-                    width: 0.5,
+                  color: Colors.white,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: theme.colorScheme.primary,
+                      width: 2.0,
+                    ),
                   ),
                 ),
                 padding: const EdgeInsets.symmetric(
@@ -296,16 +295,8 @@ class _ActivityGroupsListViewState
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
                     border: Border(
-                      left: BorderSide(
-                        color: theme.colorScheme.outlineVariant,
-                        width: 0.5,
-                      ),
-                      right: BorderSide(
-                        color: theme.colorScheme.outlineVariant,
-                        width: 0.5,
-                      ),
                       bottom: BorderSide(
-                        color: theme.colorScheme.outlineVariant,
+                        color: theme.colorScheme.primary,
                         width: 0.5,
                       ),
                     ),
@@ -333,18 +324,12 @@ class _ActivityGroupsListViewState
                       child: Container(
                         decoration: BoxDecoration(
                           border: Border(
-                            left: BorderSide(
-                              color: theme.colorScheme.outlineVariant,
-                              width: 0.5,
-                            ),
-                            right: BorderSide(
-                              color: theme.colorScheme.outlineVariant,
-                              width: 0.5,
-                            ),
-                            bottom: BorderSide(
-                              color: theme.colorScheme.outlineVariant,
-                              width: 0.5,
-                            ),
+                            bottom: idx == displayedGroups.length - 1
+                                ? BorderSide.none
+                                : BorderSide(
+                                    color: theme.colorScheme.primary,
+                                    width: 0.5,
+                                  ),
                           ),
                         ),
                         padding: const EdgeInsets.symmetric(
@@ -371,20 +356,22 @@ class _ActivityGroupsListViewState
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  FilledButton(
-                                    key: Key(
-                                      'activity_group_row_edit_button_${g.id}',
+                                  if (isOwner) ...[
+                                    FilledButton(
+                                      key: Key(
+                                        'activity_group_row_edit_button_${g.id}',
+                                      ),
+                                      onPressed: () {
+                                        context.go(
+                                          RouterPaths.settingsActivityGroupsEditPath(
+                                            g.id,
+                                          ),
+                                        );
+                                      },
+                                      child: const Text('Edit'),
                                     ),
-                                    onPressed: () {
-                                      context.go(
-                                        RouterPaths.settingsActivityGroupsEditPath(
-                                          g.id,
-                                        ),
-                                      );
-                                    },
-                                    child: const Text('Edit'),
-                                  ),
-                                  const SizedBox(width: 8),
+                                    const SizedBox(width: 8),
+                                  ],
                                   Directionality(
                                     textDirection: TextDirection.rtl,
                                     child: MenuAnchor(
@@ -477,74 +464,75 @@ class _ActivityGroupsListViewState
                                             ),
                                           ),
                                         ),
-                                        Directionality(
-                                          textDirection: TextDirection.ltr,
-                                          child: MenuItemButton(
-                                            key: Key(
-                                              'activity_group_row_share_item_${g.id}',
-                                            ),
-                                            onPressed: () async {
-                                              const val = 'share';
-                                              if (val == 'toggle') {
-                                                final newStatus =
-                                                    groupStatus == 'Active'
-                                                    ? 'Inactive'
-                                                    : 'Active';
-                                                final newStatusMap =
-                                                    Map<String, String>.from(
-                                                      g.statusMap,
-                                                    )..[myOrg.id] = newStatus;
-                                                await ref
-                                                    .read(
-                                                      databaseServiceProvider,
-                                                    )
-                                                    .saveActivityGroup(
-                                                      g.copyWith(
-                                                        statusMap: newStatusMap,
-                                                        lastModifiedBy:
-                                                            user?.email ??
-                                                            'system',
-                                                        lastModifiedAt:
-                                                            DateTime.now(),
-                                                      ),
-                                                    );
-                                              } else if (val == 'share') {
-                                                _showShareModal(
-                                                  initialGroup: g,
-                                                );
-                                              } else if (val == 'delete') {
-                                                try {
+                                        if (isOwner)
+                                          Directionality(
+                                            textDirection: TextDirection.ltr,
+                                            child: MenuItemButton(
+                                              key: Key(
+                                                'activity_group_row_share_item_${g.id}',
+                                              ),
+                                              onPressed: () async {
+                                                const val = 'share';
+                                                if (val == 'toggle') {
+                                                  final newStatus =
+                                                      groupStatus == 'Active'
+                                                      ? 'Inactive'
+                                                      : 'Active';
+                                                  final newStatusMap =
+                                                      Map<String, String>.from(
+                                                        g.statusMap,
+                                                      )..[myOrg.id] = newStatus;
                                                   await ref
                                                       .read(
                                                         databaseServiceProvider,
                                                       )
-                                                      .deleteActivityGroup(
-                                                        g.id,
-                                                        myOrg.id,
-                                                      );
-                                                } catch (e) {
-                                                  if (context.mounted) {
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).showSnackBar(
-                                                      SnackBar(
-                                                        content: Text(
-                                                          e
-                                                              .toString()
-                                                              .replaceAll(
-                                                                'Exception: ',
-                                                                '',
-                                                              ),
+                                                      .saveActivityGroup(
+                                                        g.copyWith(
+                                                          statusMap: newStatusMap,
+                                                          lastModifiedBy:
+                                                              user?.email ??
+                                                              'system',
+                                                          lastModifiedAt:
+                                                              DateTime.now(),
                                                         ),
-                                                      ),
-                                                    );
+                                                      );
+                                                } else if (val == 'share') {
+                                                  _showShareModal(
+                                                    initialGroup: g,
+                                                  );
+                                                } else if (val == 'delete') {
+                                                  try {
+                                                    await ref
+                                                        .read(
+                                                          databaseServiceProvider,
+                                                        )
+                                                        .deleteActivityGroup(
+                                                          g.id,
+                                                          myOrg.id,
+                                                        );
+                                                  } catch (e) {
+                                                    if (context.mounted) {
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                            e
+                                                                .toString()
+                                                                .replaceAll(
+                                                                  'Exception: ',
+                                                                  '',
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      );
+                                                    }
                                                   }
                                                 }
-                                              }
-                                            },
-                                            child: const Text('Share'),
+                                              },
+                                              child: const Text('Share'),
+                                            ),
                                           ),
-                                        ),
                                         Directionality(
                                           textDirection: TextDirection.ltr,
                                           child: MenuItemButton(
@@ -968,16 +956,8 @@ class _ActivityGroupsListViewState
         return Container(
           decoration: BoxDecoration(
             border: Border(
-              left: BorderSide(
-                color: theme.colorScheme.outlineVariant,
-                width: 0.5,
-              ),
-              right: BorderSide(
-                color: theme.colorScheme.outlineVariant,
-                width: 0.5,
-              ),
               bottom: BorderSide(
-                color: theme.colorScheme.outlineVariant,
+                color: theme.colorScheme.primary,
                 width: 0.5,
               ),
             ),

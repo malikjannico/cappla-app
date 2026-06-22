@@ -95,31 +95,39 @@ class ActivityModel {
     'assignedUserEmails': assignedUserEmails,
   };
 
-  factory ActivityModel.fromMap(Map<String, dynamic> map) => ActivityModel(
-    id: map['id'],
-    name: map['name'],
-    activityGroupId: map['activityGroupId'],
-    categoryId: map['categoryId'],
-    type: map['type'],
-    validityStart: map['validityStart'] != null
-        ? DateTime.parse(map['validityStart'])
-        : null,
-    validityEnd: map['validityEnd'] != null
-        ? DateTime.parse(map['validityEnd'])
-        : null,
-    ownerOrgUnitId: map['ownerOrgUnitId'],
-    sharedOrgUnitIds: List<String>.from(map['sharedOrgUnitIds'] ?? []),
-    appliedOrgUnitIds: List<String>.from(map['appliedOrgUnitIds'] ?? []),
-    statusMap: Map<String, String>.from(map['statusMap'] ?? {}),
-    createdBy: map['createdBy'] ?? '',
-    createdAt: map['createdAt'] != null
-        ? DateTime.parse(map['createdAt'])
-        : DateTime.fromMillisecondsSinceEpoch(0),
-    lastModifiedBy: map['lastModifiedBy'] ?? '',
-    lastModifiedAt: map['lastModifiedAt'] != null
-        ? DateTime.parse(map['lastModifiedAt'])
-        : DateTime.fromMillisecondsSinceEpoch(0),
-    order: map['order'] ?? 0,
-    assignedUserEmails: List<String>.from(map['assignedUserEmails'] ?? []),
-  );
+  factory ActivityModel.fromMap(Map<String, dynamic> map) {
+    DateTime? parseDate(dynamic val) {
+      if (val == null) return null;
+      if (val is String) return DateTime.parse(val);
+      try {
+        return (val as dynamic).toDate();
+      } catch (_) {
+        try {
+          return DateTime.parse(val.toString());
+        } catch (_) {
+          return null;
+        }
+      }
+    }
+
+    return ActivityModel(
+      id: map['id'],
+      name: map['name'],
+      activityGroupId: map['activityGroupId'],
+      categoryId: map['categoryId'],
+      type: map['type'],
+      validityStart: parseDate(map['validityStart']),
+      validityEnd: parseDate(map['validityEnd']),
+      ownerOrgUnitId: map['ownerOrgUnitId'],
+      sharedOrgUnitIds: List<String>.from(map['sharedOrgUnitIds'] ?? []),
+      appliedOrgUnitIds: List<String>.from(map['appliedOrgUnitIds'] ?? []),
+      statusMap: Map<String, String>.from(map['statusMap'] ?? {}),
+      createdBy: map['createdBy'] ?? '',
+      createdAt: parseDate(map['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      lastModifiedBy: map['lastModifiedBy'] ?? '',
+      lastModifiedAt: parseDate(map['lastModifiedAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      order: map['order'] ?? 0,
+      assignedUserEmails: List<String>.from(map['assignedUserEmails'] ?? []),
+    );
+  }
 }

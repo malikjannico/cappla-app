@@ -109,7 +109,19 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
     return false;
   }
 
-  void _showHeadOfSelectionModal(List<UserModel> users) {
+  void _showHeadOfSelectionModal(
+    List<UserModel> users,
+    List<OrgUnitModel> orgs,
+    String currentOrgId,
+  ) {
+    final headEmails = orgs
+        .where((o) => o.id != currentOrgId)
+        .map((o) => o.headOfEmail.trim().toLowerCase())
+        .toSet();
+    final assignableUsers = users
+        .where((u) => !headEmails.contains(u.email.trim().toLowerCase()))
+        .toList();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -117,7 +129,7 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
         String? localSelectedEmail = _selectedHeadEmail;
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            final filteredUsers = users.where((u) {
+            final filteredUsers = assignableUsers.where((u) {
               final q = query.trim().toLowerCase();
               if (q.isEmpty) return true;
               return u.fullName.toLowerCase().contains(q) ||
@@ -735,9 +747,12 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                     linkKey: const Key('org_detail_back_button'),
                     onTap: () => context.go(RouterPaths.adminOrgs),
                   ),
-                  Text(
-                    ' / ${org.name}',
-                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                  Expanded(
+                    child: Text(
+                      ' / ${org.name}',
+                      style: TextStyle(color: theme.colorScheme.primary),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
@@ -852,6 +867,24 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                             FilledButton(
                               key: const Key('org_detail_save_button'),
                               onPressed: () async {
+                                if (_selectedHeadEmail != null &&
+                                    _selectedHeadEmail!.trim().isNotEmpty) {
+                                  final emailToCheck =
+                                      _selectedHeadEmail!.trim().toLowerCase();
+                                  final alreadyHead = allOrgs.any(
+                                    (o) =>
+                                        o.id != org.id &&
+                                        o.headOfEmail.trim().toLowerCase() ==
+                                            emailToCheck,
+                                  );
+                                  if (alreadyHead) {
+                                    setState(
+                                      () => _formErrorMessage =
+                                          'This user is already the head of another organization unit.',
+                                    );
+                                    return;
+                                  }
+                                }
                                 try {
                                   final updated = org.copyWith(
                                     name: _nameController.text,
@@ -903,7 +936,7 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                       Text(
                         'Status',
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                          color: theme.colorScheme.primary,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1014,7 +1047,11 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                             );
                         return GestureDetector(
                           key: const Key('org_detail_head_input'),
-                          onTap: () => _showHeadOfSelectionModal(allUsers),
+                          onTap: () => _showHeadOfSelectionModal(
+                            allUsers,
+                            allOrgs,
+                            org.id,
+                          ),
                           child: AbsorbPointer(
                             child: TextField(
                               controller: TextEditingController(
@@ -1080,7 +1117,7 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                                   'Status',
                                   key: const Key('org_detail_status_label'),
                                   style: theme.textTheme.labelMedium?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
+                                    color: theme.colorScheme.primary,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
@@ -1331,6 +1368,7 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                         children: [
                           MenuAnchor(
                             builder: (context, controller, child) {
+                              final bool isSelected = _employeeStatusFilter != null;
                               return FilterChip(
                                 key: const Key(
                                   'org_employee_filter_status_dropdown',
@@ -1338,12 +1376,21 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                                 label: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(_employeeStatusFilter ?? 'Status'),
+                                    Text(
+                                      _employeeStatusFilter ?? 'Status',
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.white : null,
+                                      ),
+                                    ),
                                     const SizedBox(width: 4),
-                                    const Icon(Icons.arrow_drop_down, size: 18),
+                                    Icon(
+                                      Icons.arrow_drop_down,
+                                      size: 18,
+                                      color: isSelected ? Colors.white : null,
+                                    ),
                                   ],
                                 ),
-                                selected: _employeeStatusFilter != null,
+                                selected: isSelected,
                                 onSelected: (selected) {
                                   if (controller.isOpen) {
                                     controller.close();
@@ -1395,6 +1442,7 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                               if (_employeeRoleFilter == 'User') {
                                 roleLabel = 'User';
                               }
+                              final bool isSelected = _employeeRoleFilter != null;
                               return FilterChip(
                                 key: const Key(
                                   'org_employee_filter_role_dropdown',
@@ -1402,12 +1450,21 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                                 label: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(roleLabel),
+                                    Text(
+                                      roleLabel,
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.white : null,
+                                      ),
+                                    ),
                                     const SizedBox(width: 4),
-                                    const Icon(Icons.arrow_drop_down, size: 18),
+                                    Icon(
+                                      Icons.arrow_drop_down,
+                                      size: 18,
+                                      color: isSelected ? Colors.white : null,
+                                    ),
                                   ],
                                 ),
-                                selected: _employeeRoleFilter != null,
+                                selected: isSelected,
                                 onSelected: (selected) {
                                   if (controller.isOpen) {
                                     controller.close();
@@ -1508,13 +1565,12 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainer,
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12),
-                        ),
-                        border: Border.all(
-                          color: theme.colorScheme.outlineVariant,
-                          width: 0.5,
+                        color: Colors.white,
+                        border: Border(
+                          bottom: BorderSide(
+                            color: theme.colorScheme.primary,
+                            width: 2.0,
+                          ),
                         ),
                       ),
                       padding: const EdgeInsets.symmetric(
@@ -1560,16 +1616,8 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                         padding: const EdgeInsets.all(32),
                         decoration: BoxDecoration(
                           border: Border(
-                            left: BorderSide(
-                              color: theme.colorScheme.outlineVariant,
-                              width: 0.5,
-                            ),
-                            right: BorderSide(
-                              color: theme.colorScheme.outlineVariant,
-                              width: 0.5,
-                            ),
                             bottom: BorderSide(
-                              color: theme.colorScheme.outlineVariant,
+                              color: theme.colorScheme.primary,
                               width: 0.5,
                             ),
                           ),
@@ -1602,18 +1650,12 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                             child: Container(
                               decoration: BoxDecoration(
                                 border: Border(
-                                  left: BorderSide(
-                                    color: theme.colorScheme.outlineVariant,
-                                    width: 0.5,
-                                  ),
-                                  right: BorderSide(
-                                    color: theme.colorScheme.outlineVariant,
-                                    width: 0.5,
-                                  ),
-                                  bottom: BorderSide(
-                                    color: theme.colorScheme.outlineVariant,
-                                    width: 0.5,
-                                  ),
+                                  bottom: idx == displayedEmployees.length - 1
+                                      ? BorderSide.none
+                                      : BorderSide(
+                                          color: theme.colorScheme.primary,
+                                          width: 0.5,
+                                        ),
                                 ),
                               ),
                               padding: const EdgeInsets.symmetric(
@@ -1823,6 +1865,7 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                       children: [
                         MenuAnchor(
                           builder: (context, controller, childWidget) {
+                            final bool isSelected = _childTypeFilter != null;
                             return FilterChip(
                               key: const Key('org_child_filter_type_dropdown'),
                               label: Row(
@@ -1832,12 +1875,19 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                                     _childTypeFilter != null
                                         ? formatOrgType(_childTypeFilter!)
                                         : 'Type',
+                                    style: TextStyle(
+                                      color: isSelected ? Colors.white : null,
+                                    ),
                                   ),
                                   const SizedBox(width: 4),
-                                  const Icon(Icons.arrow_drop_down, size: 18),
+                                  Icon(
+                                    Icons.arrow_drop_down,
+                                    size: 18,
+                                    color: isSelected ? Colors.white : null,
+                                  ),
                                 ],
                               ),
-                              selected: _childTypeFilter != null,
+                              selected: isSelected,
                               onSelected: (selected) {
                                 if (controller.isOpen) {
                                   controller.close();
@@ -1964,13 +2014,12 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainer,
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(12),
-                          ),
-                          border: Border.all(
-                            color: theme.colorScheme.outlineVariant,
-                            width: 0.5,
+                          color: Colors.white,
+                          border: Border(
+                            bottom: BorderSide(
+                              color: theme.colorScheme.primary,
+                              width: 2.0,
+                            ),
                           ),
                         ),
                         padding: const EdgeInsets.symmetric(
@@ -2016,16 +2065,8 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                           padding: const EdgeInsets.all(32),
                           decoration: BoxDecoration(
                             border: Border(
-                              left: BorderSide(
-                                color: theme.colorScheme.outlineVariant,
-                                width: 0.5,
-                              ),
-                              right: BorderSide(
-                                color: theme.colorScheme.outlineVariant,
-                                width: 0.5,
-                              ),
                               bottom: BorderSide(
-                                color: theme.colorScheme.outlineVariant,
+                                color: theme.colorScheme.primary,
                                 width: 0.5,
                               ),
                             ),
@@ -2059,18 +2100,12 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                               child: Container(
                                 decoration: BoxDecoration(
                                   border: Border(
-                                    left: BorderSide(
-                                      color: theme.colorScheme.outlineVariant,
-                                      width: 0.5,
-                                    ),
-                                    right: BorderSide(
-                                      color: theme.colorScheme.outlineVariant,
-                                      width: 0.5,
-                                    ),
-                                    bottom: BorderSide(
-                                      color: theme.colorScheme.outlineVariant,
-                                      width: 0.5,
-                                    ),
+                                    bottom: idx == displayedChildren.length - 1
+                                        ? BorderSide.none
+                                        : BorderSide(
+                                            color: theme.colorScheme.primary,
+                                            width: 0.5,
+                                          ),
                                   ),
                                 ),
                                 padding: const EdgeInsets.symmetric(
@@ -2289,7 +2324,7 @@ class _BreadcrumbLinkState extends State<BreadcrumbLink> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
-    final hoverColor = theme.colorScheme.secondary;
+    final hoverColor = theme.colorScheme.primary;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),

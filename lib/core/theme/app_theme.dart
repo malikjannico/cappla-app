@@ -25,7 +25,38 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: lightColorScheme,
-      textTheme: appTextTheme,
+      textTheme: appTextTheme.apply(
+        bodyColor: lightColorScheme.primary,
+        displayColor: lightColorScheme.primary,
+      ),
+      iconTheme: IconThemeData(
+        color: lightColorScheme.primary,
+      ),
+      primaryIconTheme: IconThemeData(
+        color: lightColorScheme.primary,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        labelStyle: TextStyle(color: lightColorScheme.primary),
+        floatingLabelStyle: TextStyle(color: lightColorScheme.primary),
+        hintStyle: TextStyle(color: lightColorScheme.primary.withValues(alpha: 0.5)),
+        prefixStyle: TextStyle(color: lightColorScheme.primary),
+        suffixStyle: TextStyle(color: lightColorScheme.primary),
+        iconColor: lightColorScheme.primary,
+        prefixIconColor: lightColorScheme.primary,
+        suffixIconColor: lightColorScheme.primary,
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: lightColorScheme.primary, width: 1.0),
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: lightColorScheme.primary, width: 2.0),
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        border: OutlineInputBorder(
+          borderSide: BorderSide(color: lightColorScheme.primary, width: 1.0),
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+      ),
       scaffoldBackgroundColor: const Color(
         0xFFFAF8FF,
       ), // Background color from M3 spec
@@ -65,6 +96,36 @@ class AppTheme {
         style: ButtonStyle(
           fixedSize: WidgetStateProperty.all(const Size.fromWidth(250)),
         ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: const Color(0xFFBFFF00),
+          foregroundColor: const Color(0xFF001450),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFBFFF00),
+          foregroundColor: const Color(0xFF001450),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        selectedColor: lightColorScheme.secondary,
+        checkmarkColor: Colors.white,
+        labelStyle: WidgetStateTextStyle.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const TextStyle(color: Colors.white);
+          }
+          return TextStyle(color: lightColorScheme.primary);
+        }),
+        secondaryLabelStyle: const TextStyle(color: Colors.white),
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: lightColorScheme.primary,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        textStyle: const TextStyle(color: Colors.white, fontSize: 12),
       ),
       extensions: const [AppColorsExtension.light],
     );

@@ -1078,5 +1078,246 @@ void main() {
       // Verify Z is no longer in Category Z's activities list
       expect(find.byKey(Key('category_activity_row_$actId')), findsNothing);
     });
+
+    testWidgets(
+      'T_SET_06: Ownership checks and employee assignment constraints',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1200, 1000);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: harness.container,
+            child: const CapplaApp(),
+          ),
+        );
+
+        // Login as Head A (owns ORG_A)
+        await tester.enterText(
+          find.byKey(const Key('login_email_input')),
+          'head.a@vetter.com',
+        );
+        await tester.tap(find.byKey(const Key('login_next_button')));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('login_password_input')),
+          'Password123!',
+        );
+        await tester.tap(find.byKey(const Key('login_submit_button')));
+        await tester.pumpAndSettle();
+
+        // Navigate to Settings
+        await tester.tap(find.byKey(const Key('nav_settings')));
+        await tester.pumpAndSettle();
+
+        // Create Category A (owned by ORG_A)
+        await tester.tap(find.byKey(const Key('nav_rail_categories')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('create_category_button')));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('category_create_name_input')),
+          'Category A',
+        );
+        await tester.tap(find.byKey(const Key('category_create_button')));
+        await tester.pumpAndSettle();
+
+        final catList = harness.mockFirestore.collections['categories']!.values.toList();
+        final catId = catList.firstWhere((c) => c['name'] == 'Category A')['id'] as String;
+
+        // Create Group A (owned by ORG_A)
+        await tester.tap(find.byKey(const Key('nav_rail_activities')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('create_activity_group_button')));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('activity_group_create_name_input')),
+          'Group A',
+        );
+        await tester.tap(find.byKey(const Key('activity_group_create_button')));
+        await tester.pumpAndSettle();
+
+        final groupList = harness.mockFirestore.collections['activityGroups']!.values.toList();
+        final groupId = groupList.firstWhere((g) => g['name'] == 'Group A')['id'] as String;
+
+        // Open Group A and create Activity A (owned by ORG_A)
+        await tester.tap(find.byKey(Key('activity_group_row_$groupId')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('create_activity_button')));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('activity_create_name_input')),
+          'Activity A',
+        );
+        await tester.tap(find.byKey(const Key('activity_create_button')));
+        await tester.pumpAndSettle();
+
+        final actList = harness.mockFirestore.collections['activities']!.values.toList();
+        final actId = actList.firstWhere((a) => a['name'] == 'Activity A')['id'] as String;
+
+        // Share Category A and Activity Group A with ORG_B so Head B can see them
+        final db = harness.container.read(databaseServiceProvider);
+        final cat = await db.getCategory(catId);
+        await db.saveCategory(cat!.copyWith(
+          sharedOrgUnitIds: ['ORG_B'],
+          appliedOrgUnitIds: ['ORG_B'],
+        ));
+        final grp = await db.getActivityGroup(groupId);
+        await db.saveActivityGroup(grp!.copyWith(
+          sharedOrgUnitIds: ['ORG_B'],
+          appliedOrgUnitIds: ['ORG_B'],
+        ));
+        final act = await db.getActivity(actId);
+        await db.saveActivity(act!.copyWith(
+          sharedOrgUnitIds: ['ORG_B'],
+          appliedOrgUnitIds: ['ORG_B'],
+        ));
+
+        // Logout
+        await tester.tap(find.byKey(const Key('profile_dropdown_button')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('profile_menu_item_logout')));
+        await tester.pumpAndSettle();
+
+        // Seed some employees for ORG_A and ORG_B
+        final empA = UserModel(
+          id: 'emp_a_uuid',
+          fullName: 'Employee A',
+          email: 'emp.a@vetter.com',
+          title: 'Specialist',
+          status: 'Active',
+          role: 'User',
+          orgUnitId: 'ORG_A',
+        );
+        final empB = UserModel(
+          id: 'emp_b_uuid',
+          fullName: 'Employee B',
+          email: 'emp.b@vetter.com',
+          title: 'Specialist',
+          status: 'Active',
+          role: 'User',
+          orgUnitId: 'ORG_B',
+        );
+        harness.seedUser(empA, 'Password123!');
+        harness.seedUser(empB, 'Password123!');
+
+        // Also assign both to Activity A initially
+        final actUpdated = (await db.getActivity(actId))!.copyWith(
+          assignedUserEmails: ['emp.a@vetter.com', 'emp.b@vetter.com'],
+        );
+        await db.saveActivity(actUpdated);
+
+        // Login as Head B (owns ORG_B)
+        await tester.enterText(
+          find.byKey(const Key('login_email_input')),
+          'head.b@vetter.com',
+        );
+        await tester.tap(find.byKey(const Key('login_next_button')));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('login_password_input')),
+          'Password123!',
+        );
+        await tester.tap(find.byKey(const Key('login_submit_button')));
+        await tester.pumpAndSettle();
+
+        // Navigate to Settings -> Categories
+        await tester.tap(find.byKey(const Key('nav_settings')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('nav_rail_categories')));
+        await tester.pumpAndSettle();
+
+        // 1. Verify row-level edit button and share action are hidden for Category A
+        expect(find.byKey(Key('category_row_edit_button_$catId')), findsNothing);
+        await tester.tap(find.byKey(Key('category_row_overflow_button_$catId')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(Key('category_row_share_item_$catId')), findsNothing);
+
+        // Close overflow menu
+        await tester.tapAt(const Offset(10, 10));
+        await tester.pumpAndSettle();
+
+        // 2. Open Category A Detail, verify page-level edit/share are hidden
+        await tester.tap(find.byKey(Key('category_row_$catId')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('category_detail_edit_button')), findsNothing);
+        await tester.tap(find.byKey(const Key('category_detail_overflow_button')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('category_detail_share_item')), findsNothing);
+
+        // Go to Activities Settings
+        await tester.tap(find.byKey(const Key('nav_settings')));
+        await tester.pumpAndSettle();
+
+        // 3. Verify row-level edit and share action are hidden for Activity Group A
+        expect(find.byKey(Key('activity_group_row_edit_button_$groupId')), findsNothing);
+        await tester.tap(find.byKey(Key('activity_group_row_overflow_button_$groupId')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(Key('activity_group_row_share_item_$groupId')), findsNothing);
+
+        // Close overflow menu
+        await tester.tapAt(const Offset(10, 10));
+        await tester.pumpAndSettle();
+
+        // 4. Open Group A details
+        await tester.tap(find.byKey(Key('activity_group_row_$groupId')));
+        await tester.pumpAndSettle();
+
+        // Verify page-level edit/share are hidden for group
+        expect(find.byKey(const Key('activity_group_detail_edit_button')), findsNothing);
+        await tester.tap(find.byKey(const Key('activity_group_detail_overflow_button')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('activity_group_detail_share_item')), findsNothing);
+
+        // Close overflow menu
+        await tester.tapAt(const Offset(10, 10));
+        await tester.pumpAndSettle();
+
+        // 5. Verify row-level edit/share are hidden for Activity A inside Group A
+        expect(find.byKey(Key('activity_row_edit_button_$actId')), findsNothing);
+        await tester.tap(find.byKey(Key('activity_row_overflow_button_$actId')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(Key('activity_row_share_item_$actId')), findsNothing);
+
+        // Close overflow menu
+        await tester.tapAt(const Offset(10, 10));
+        await tester.pumpAndSettle();
+
+        // 6. Open Activity A details
+        await tester.tap(find.byKey(Key('activity_row_$actId')));
+        await tester.pumpAndSettle();
+
+        // Verify page-level edit/share are hidden
+        expect(find.byKey(const Key('activity_detail_edit_button')), findsNothing);
+        await tester.tap(find.byKey(const Key('activity_detail_overflow_button')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('activity_detail_share_item')), findsNothing);
+
+        // Close overflow menu
+        await tester.tapAt(const Offset(10, 10));
+        await tester.pumpAndSettle();
+
+        // 7. Verify assigned employees list only shows employees from ORG_B
+        expect(find.text('Employee B'), findsOneWidget);
+        expect(find.text('Employee A'), findsNothing); // Filtered out as not from ORG_B
+
+        // 8. Open Assign Employee dialog and verify it only shows assignable employees from ORG_B
+        final actUpdated2 = (await db.getActivity(actId))!.copyWith(
+          assignedUserEmails: ['emp.a@vetter.com'],
+        );
+        await db.saveActivity(actUpdated2);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const Key('activity_add_employee_button')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Employee B'), findsOneWidget);
+        expect(find.text('Employee A'), findsNothing); // ORG_A employees not assignable by ORG_B head
+      },
+    );
   });
 }

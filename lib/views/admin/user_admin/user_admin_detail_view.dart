@@ -211,7 +211,7 @@ class _UserAdminDetailViewState extends ConsumerState<UserAdminDetailView> {
                   ),
                   Text(
                     ' / ${user.fullName}',
-                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                    style: TextStyle(color: theme.colorScheme.primary),
                   ),
                 ],
               ),
@@ -407,7 +407,7 @@ class _UserAdminDetailViewState extends ConsumerState<UserAdminDetailView> {
                       Text(
                         'Status',
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                          color: theme.colorScheme.primary,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -553,7 +553,7 @@ class _UserAdminDetailViewState extends ConsumerState<UserAdminDetailView> {
                                   'Status',
                                   key: const Key('user_detail_status_label'),
                                   style: theme.textTheme.labelMedium?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
+                                    color: theme.colorScheme.primary,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
@@ -757,7 +757,7 @@ class _BreadcrumbLinkState extends State<BreadcrumbLink> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
-    final hoverColor = theme.colorScheme.secondary;
+    final hoverColor = theme.colorScheme.primary;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),

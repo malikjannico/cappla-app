@@ -417,7 +417,7 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5FAFB),
+      backgroundColor: const Color(0xFFFFFFFF),
       appBar: AppBar(
         leading: IconButton(
           key: const Key('reset_back_button'),
@@ -449,6 +449,9 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
             children: [
               Card(
                 color: const Color(0xFFFFFFFF),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Container(
                   width: 400,
@@ -472,7 +475,7 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
                             ? 'Password must be at least 8 characters long and contain uppercase, lowercase, digits, and special characters.'
                             : "We want to make sure it's really you. In order to further verify your identity, enter the verification code that was sent to $enteredEmail",
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                          color: theme.colorScheme.primary,
                         ),
                         textAlign: TextAlign.left,
                       ),

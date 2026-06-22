@@ -147,6 +147,7 @@ class _OrgAdminViewState extends ConsumerState<OrgAdminView> {
             children: [
               MenuAnchor(
                 builder: (context, controller, child) {
+                  final bool isSelected = _typeFilter != null;
                   return FilterChip(
                     key: const Key('filter_type_dropdown'),
                     label: Row(
@@ -156,12 +157,19 @@ class _OrgAdminViewState extends ConsumerState<OrgAdminView> {
                           _typeFilter != null
                               ? _formatTypeName(_typeFilter!)
                               : 'Type',
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : null,
+                          ),
                         ),
                         const SizedBox(width: 4),
-                        const Icon(Icons.arrow_drop_down, size: 18),
+                        Icon(
+                          Icons.arrow_drop_down,
+                          size: 18,
+                          color: isSelected ? Colors.white : null,
+                        ),
                       ],
                     ),
-                    selected: _typeFilter != null,
+                    selected: isSelected,
                     onSelected: (selected) {
                       if (controller.isOpen) {
                         controller.close();
@@ -281,13 +289,12 @@ class _OrgAdminViewState extends ConsumerState<OrgAdminView> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainer,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
-                  border: Border.all(
-                    color: theme.colorScheme.outlineVariant,
-                    width: 0.5,
+                  color: Colors.white,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: theme.colorScheme.primary,
+                      width: 2.0,
+                    ),
                   ),
                 ),
                 padding: const EdgeInsets.symmetric(
@@ -342,16 +349,8 @@ class _OrgAdminViewState extends ConsumerState<OrgAdminView> {
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
                     border: Border(
-                      left: BorderSide(
-                        color: theme.colorScheme.outlineVariant,
-                        width: 0.5,
-                      ),
-                      right: BorderSide(
-                        color: theme.colorScheme.outlineVariant,
-                        width: 0.5,
-                      ),
                       bottom: BorderSide(
-                        color: theme.colorScheme.outlineVariant,
+                        color: theme.colorScheme.primary,
                         width: 0.5,
                       ),
                     ),
@@ -376,18 +375,12 @@ class _OrgAdminViewState extends ConsumerState<OrgAdminView> {
                       child: Container(
                         decoration: BoxDecoration(
                           border: Border(
-                            left: BorderSide(
-                              color: theme.colorScheme.outlineVariant,
-                              width: 0.5,
-                            ),
-                            right: BorderSide(
-                              color: theme.colorScheme.outlineVariant,
-                              width: 0.5,
-                            ),
-                            bottom: BorderSide(
-                              color: theme.colorScheme.outlineVariant,
-                              width: 0.5,
-                            ),
+                            bottom: idx == displayedOrgs.length - 1
+                                ? BorderSide.none
+                                : BorderSide(
+                                    color: theme.colorScheme.primary,
+                                    width: 0.5,
+                                  ),
                           ),
                         ),
                         padding: const EdgeInsets.symmetric(
@@ -536,16 +529,8 @@ class _OrgAdminViewState extends ConsumerState<OrgAdminView> {
         return Container(
           decoration: BoxDecoration(
             border: Border(
-              left: BorderSide(
-                color: theme.colorScheme.outlineVariant,
-                width: 0.5,
-              ),
-              right: BorderSide(
-                color: theme.colorScheme.outlineVariant,
-                width: 0.5,
-              ),
               bottom: BorderSide(
-                color: theme.colorScheme.outlineVariant,
+                color: theme.colorScheme.primary,
                 width: 0.5,
               ),
             ),

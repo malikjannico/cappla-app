@@ -248,6 +248,8 @@ void main() {
         final specificPeriodTextFinder = find.text(
           'July 1 2026 to September 30 2026',
         );
+        await tester.ensureVisible(specificPeriodTextFinder);
+        await tester.pumpAndSettle();
         await tester.tap(specificPeriodTextFinder);
         await tester.pump(const Duration(milliseconds: 50));
         await tester.tap(specificPeriodTextFinder);
@@ -719,6 +721,141 @@ void main() {
 
         final afterEnterClipData = await Clipboard.getData(Clipboard.kTextPlain);
         expect(afterEnterClipData?.text, '8');
+      },
+    );
+
+    testWidgets(
+      'My Capacity - Year Filtering and Pagination logic',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: harness.container,
+            child: const CapplaApp(),
+          ),
+        );
+
+        // Log in as the admin user
+        await tester.enterText(
+          find.byKey(const Key('login_email_input')),
+          'MalikJannico.Press@vetter-pharma.com',
+        );
+        await tester.tap(find.byKey(const Key('login_next_button')));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.byKey(const Key('login_password_input')),
+          'AdminPassword123!',
+        );
+        await tester.tap(find.byKey(const Key('login_submit_button')));
+        await tester.pumpAndSettle();
+
+        // Navigate to profile view
+        await tester.tap(find.byKey(const Key('profile_dropdown_button')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('profile_menu_item_profile')));
+        await tester.pumpAndSettle();
+
+        // Initially no specific capacities, so filter chip should be hidden
+        expect(find.byKey(const Key('profile_capacity_year_filter_dropdown')), findsNothing);
+
+        // Add 6 custom capacities with different years:
+        // 1. 2026-01-01 to 2026-01-31
+        // 2. 2027-01-01 to 2027-01-31
+        // 3. 2028-01-01 to 2028-01-31
+        // 4. 2029-01-01 to 2029-01-31
+        // 5. 2030-01-01 to 2030-01-31
+        // 6. 2031-01-01 to 2031-01-31
+        final years = [2026, 2027, 2028, 2029, 2030, 2031];
+        for (final year in years) {
+          await tester.ensureVisible(find.byKey(const Key('capacity_add_button')));
+          await tester.pumpAndSettle();
+          await tester.tap(find.byKey(const Key('capacity_add_button')));
+          await tester.pumpAndSettle();
+
+          await tester.enterText(
+            find.byKey(const Key('capacity_modal_start_date_input')),
+            '$year-01-01',
+          );
+          await tester.enterText(
+            find.byKey(const Key('capacity_modal_end_date_input')),
+            '$year-01-31',
+          );
+          await tester.pumpAndSettle();
+
+          await tester.tap(find.byKey(const Key('capacity_modal_save_button')));
+          await tester.pumpAndSettle();
+        }
+
+        // Verify the year filter chip is now visible
+        expect(find.byKey(const Key('profile_capacity_year_filter_dropdown')), findsOneWidget);
+
+        // Verify standard row is visible
+        expect(find.text('Standard'), findsOneWidget);
+
+        // Verify result indicator shows "1-5 of 6" specific capacities
+        expect(find.byKey(const Key('profile_capacity_pagination_displayed_count')), findsOneWidget);
+        expect(find.text('1-5 of 6'), findsOneWidget);
+
+        // Go to next page
+        await tester.tap(find.byKey(const Key('profile_capacity_page_forward')));
+        await tester.pumpAndSettle();
+
+        // Verify result indicator shows "6-6 of 6"
+        expect(find.text('6-6 of 6'), findsOneWidget);
+
+        // Go back to first page
+        await tester.tap(find.byKey(const Key('profile_capacity_page_back')));
+        await tester.pumpAndSettle();
+        expect(find.text('1-5 of 6'), findsOneWidget);
+
+        // Select Year filter chip -> 2027
+        await tester.tap(find.byKey(const Key('profile_capacity_year_filter_dropdown')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('profile_capacity_year_filter_item_2027')));
+        await tester.pumpAndSettle();
+
+        // Only capacities overlapping 2027 should be shown.
+        // The result indicator should show "1-1 of 1"
+        expect(find.text('1-1 of 1'), findsOneWidget);
+        expect(find.text('January 1 2027 to January 31 2027'), findsOneWidget);
+        expect(find.text('January 1 2026 to January 31 2026'), findsNothing);
+
+        // Clear filter
+        await tester.tap(find.byKey(const Key('profile_capacity_year_filter_dropdown')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('profile_capacity_year_filter_all_item')));
+        await tester.pumpAndSettle();
+        expect(find.text('1-5 of 6'), findsOneWidget);
+
+        // Clean up: delete custom capacities
+        await tester.tap(find.byKey(const Key('capacity_edit_button')));
+        await tester.pumpAndSettle();
+
+        // Delete page 1 capacities
+        for (int i = 0; i < 5; i++) {
+          final deleteButtonFinder = find.byIcon(Icons.delete).first;
+          await tester.ensureVisible(deleteButtonFinder);
+          await tester.tap(deleteButtonFinder);
+          await tester.pumpAndSettle();
+        }
+
+        // Save deletes to update database state
+        await tester.tap(find.byKey(const Key('capacity_save_button')));
+        await tester.pumpAndSettle();
+
+        // Now page 2 is automatically loaded (1 capacity remains)
+        expect(find.text('1-1 of 1'), findsOneWidget);
+
+        // Delete the last one
+        await tester.tap(find.byKey(const Key('capacity_edit_button')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.delete).first);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('capacity_save_button')));
+        await tester.pumpAndSettle();
+
+        // All custom capacities deleted. Verify filter chip is hidden again
+        expect(find.byKey(const Key('profile_capacity_year_filter_dropdown')), findsNothing);
       },
     );
   });
