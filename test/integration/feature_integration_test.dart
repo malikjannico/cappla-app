@@ -1340,7 +1340,7 @@ void main() {
         id: 'CHILD_DEPT',
         name: 'Child Department',
         abbreviation: 'CDEPT',
-        headOfEmail: 'MalikJannico.Press@vetter-pharma.com',
+        headOfEmail: 'child.head@vetter-pharma.com',
         type: 'department',
         parentId: null,
         childIds: [],
