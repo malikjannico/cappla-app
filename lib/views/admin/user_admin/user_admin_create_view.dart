@@ -84,7 +84,7 @@ class _UserAdminCreateViewState extends ConsumerState<UserAdminCreateView> {
         final baseUrl = Uri.base.origin;
         await FirebaseFirestore.instance
             .collection('activationRequests')
-            .doc(email)
+            .doc(email.trim().toLowerCase())
             .set({
           'baseUrl': baseUrl,
           'createdAt': FieldValue.serverTimestamp(),
