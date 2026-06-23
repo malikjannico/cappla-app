@@ -11,9 +11,6 @@ import 'package:cappla/core/providers/providers.dart';
 import 'package:cappla/core/router/router_paths.dart';
 import 'package:cappla/core/router/router.dart';
 import 'package:cappla/views/standard/reports_view.dart';
-import 'package:cappla/models/activity_model.dart';
-import 'package:cappla/models/activity_group_model.dart';
-import 'package:cappla/models/category_model.dart';
 import 'e2e_test_harness.dart';
 
 void main() {
