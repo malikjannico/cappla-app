@@ -94,7 +94,8 @@ class _LoginViewState extends ConsumerState<LoginView> {
 
     try {
       final firestore = FirebaseFirestore.instance;
-      // Write the reset request to Firestore
+      // Write the reset request to Firestore (delete first to guarantee onCreate trigger fires)
+      await firestore.collection('passwordResetRequests').doc(email).delete().catchError((_) {});
       await firestore.collection('passwordResetRequests').doc(email).set({
         'createdAt': FieldValue.serverTimestamp(),
         'status': 'requested',

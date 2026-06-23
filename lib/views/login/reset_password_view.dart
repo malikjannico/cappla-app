@@ -144,7 +144,8 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
 
     try {
       final firestore = FirebaseFirestore.instance;
-      // Write verification request
+      // Write verification request (delete first to guarantee onCreate trigger fires)
+      await firestore.collection('passwordResetVerifications').doc(email).delete().catchError((_) {});
       await firestore.collection('passwordResetVerifications').doc(email).set({
         'code': enteredCode,
         'createdAt': FieldValue.serverTimestamp(),
@@ -233,6 +234,8 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
 
     try {
       final firestore = FirebaseFirestore.instance;
+      // Delete first to guarantee onCreate trigger fires
+      await firestore.collection('passwordResetRequests').doc(email).delete().catchError((_) {});
       await firestore.collection('passwordResetRequests').doc(email).set({
         'createdAt': FieldValue.serverTimestamp(),
         'status': 'requested',
@@ -337,7 +340,8 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
 
     try {
       final firestore = FirebaseFirestore.instance;
-      // Write the password reset submission
+      // Write the password reset submission (delete first to guarantee onCreate trigger fires)
+      await firestore.collection('passwordResetSubmissions').doc(email).delete().catchError((_) {});
       await firestore.collection('passwordResetSubmissions').doc(email).set({
         'code': _codeController.text.trim(),
         'newPassword': _newPasswordController.text,
