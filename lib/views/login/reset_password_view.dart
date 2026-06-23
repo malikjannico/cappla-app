@@ -44,7 +44,7 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
         _emailController.text = queryEmail;
         ref.read(resetPasswordEmailProvider.notifier).state = queryEmail;
         if (widget.triggerCode) {
-          _handleResendCode();
+          _handleResendCode(isAutoTrigger: true);
         }
       } else {
         final email = ref.read(resetPasswordEmailProvider);
@@ -202,7 +202,7 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
     }
   }
 
-  Future<void> _handleResendCode() async {
+  Future<void> _handleResendCode({bool isAutoTrigger = false}) async {
     final email =
         (_emailController.text.trim().isNotEmpty
                 ? _emailController.text.trim()
@@ -217,12 +217,16 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
       ref.read(resetPasswordCodeProvider.notifier).state = code;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Verification code resent to $email (Demo Code: $code)'),
+          content: Text(isAutoTrigger
+              ? 'Verification code sent to $email (Demo Code: $code)'
+              : 'Verification code resent to $email (Demo Code: $code)'),
           duration: const Duration(seconds: 8),
         ),
       );
       setState(() {
-        _statusMessage = 'Verification code resent successfully.';
+        _statusMessage = isAutoTrigger
+            ? 'Verification code sent successfully.'
+            : 'Verification code resent successfully.';
       });
       return;
     }
@@ -257,7 +261,9 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
             subscription?.cancel();
             setState(() {
               _isLoading = false;
-              _statusMessage = 'Verification code resent successfully.';
+              _statusMessage = isAutoTrigger
+                  ? 'Verification code sent successfully.'
+                  : 'Verification code resent successfully.';
             });
             firestore
                 .collection('passwordResetRequests')
