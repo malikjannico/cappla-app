@@ -38,7 +38,7 @@ class DefaultFirebaseOptions {
 
   // Dev GCP environment (cappla-app)
   static const FirebaseOptions dev = FirebaseOptions(
-    apiKey: String.fromEnvironment('FIREBASE_API_KEY', defaultValue: 'dev-placeholder-key'),
+    apiKey: String.fromEnvironment('FIREBASE_API_KEY'),
     appId: '1:319249074563:web:a1b2c3d4e5f6g7h8i9j0k1',
     messagingSenderId: '319249074563',
     projectId: 'cappla-app',
