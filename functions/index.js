@@ -271,7 +271,8 @@ exports.onSendActivationEmail = functions.region('europe-west3').firestore
       }
 
       // Link to the reset password page of the correct environment pre-populated with the email
-      const resetLink = `${baseUrl}/#/reset-password?email=${encodeURIComponent(email)}`;
+      const finalBaseUrl = APP_BASE_URL || 'https://app-dev.cappla.de';
+      const resetLink = `${finalBaseUrl}/#/reset-password?email=${encodeURIComponent(email)}`;
 
       const html = loadTemplate('activation', { resetLink: resetLink });
       
