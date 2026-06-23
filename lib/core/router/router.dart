@@ -140,7 +140,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: RouterNames.resetPassword,
         pageBuilder: (context, state) {
           final email = state.uri.queryParameters['email'] ?? '';
-          return NoTransitionPage(child: ResetPasswordView(email: email));
+          final trigger = state.uri.queryParameters['trigger'] == 'true';
+          return NoTransitionPage(
+            child: ResetPasswordView(email: email, triggerCode: trigger),
+          );
         },
       ),
 

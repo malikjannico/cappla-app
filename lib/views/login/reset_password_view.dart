@@ -10,7 +10,8 @@ import 'vetter_logo.dart';
 
 class ResetPasswordView extends ConsumerStatefulWidget {
   final String? email;
-  const ResetPasswordView({super.key, this.email});
+  final bool triggerCode;
+  const ResetPasswordView({super.key, this.email, this.triggerCode = false});
 
   @override
   ConsumerState<ResetPasswordView> createState() => _ResetPasswordViewState();
@@ -42,6 +43,9 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
       if (queryEmail != null && queryEmail.isNotEmpty) {
         _emailController.text = queryEmail;
         ref.read(resetPasswordEmailProvider.notifier).state = queryEmail;
+        if (widget.triggerCode) {
+          _handleResendCode();
+        }
       } else {
         final email = ref.read(resetPasswordEmailProvider);
         if (email.isNotEmpty) {

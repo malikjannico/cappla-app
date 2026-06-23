@@ -20,7 +20,7 @@ function loadTemplate(templateName, variables) {
 const templates = [
   {
     name: 'activation',
-    vars: { resetLink: 'https://app-dev.cappla.de/#/reset-password?email=user.name@app-dev.cappla.de' }
+    vars: { resetLink: 'https://app-dev.cappla.de/#/reset-password?email=user.name@app-dev.cappla.de&trigger=true' }
   },
   {
     name: 'reset_code',
