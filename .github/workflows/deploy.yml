@@ -63,6 +63,7 @@ jobs:
           echo "MAILGUN_DOMAIN=${{ secrets.MAILGUN_DOMAIN }}" >> functions/.env
           echo "MAILGUN_BASE_URL=${{ secrets.MAILGUN_BASE_URL }}" >> functions/.env
           echo "FROM_EMAIL=${{ secrets.FROM_EMAIL }}" >> functions/.env
+          echo "APP_BASE_URL=${{ secrets.APP_BASE_URL }}" >> functions/.env
 
       - name: Deploy to Firebase Hosting and Functions
         run: |

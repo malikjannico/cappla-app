@@ -4,10 +4,16 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
+const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/+$/, '');
+const LOGO_URL = `${APP_BASE_URL}/favicon.png`;
+
 function loadTemplate(templateName, variables) {
   const templatePath = path.join(__dirname, 'templates', `${templateName}.html`);
   let content = fs.readFileSync(templatePath, 'utf8');
-  for (const [key, value] of Object.entries(variables)) {
+  
+  const allVars = { logoUrl: LOGO_URL, ...variables };
+  
+  for (const [key, value] of Object.entries(allVars)) {
     content = content.replaceAll(`{{${key}}}`, value);
   }
   return content;
