@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/+$/, '');
-const LOGO_URL = `${APP_BASE_URL}/favicon.png`;
+const LOGO_URL = `${APP_BASE_URL}/favicon.png?v=1.0.1`;
 
 function loadTemplate(templateName, variables) {
   const templatePath = path.join(__dirname, 'templates', `${templateName}.html`);
