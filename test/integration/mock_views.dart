@@ -329,7 +329,7 @@ class _MockLoginPageState extends ConsumerState<MockLoginPage> {
             ),
             Expanded(
               child: Text(
-                'Copyright © ${DateTime.now().year} Cappla. All rights reserved.',
+                'Copyright © ${DateTime.now().year} Vetter Pharma-Fertigung GmbH & Co. KG. All rights reserved.',
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -770,7 +770,7 @@ class _MockPasswordResetPageState extends ConsumerState<MockPasswordResetPage> {
             ),
             Expanded(
               child: Text(
-                'Copyright © ${DateTime.now().year} Cappla. All rights reserved.',
+                'Copyright © ${DateTime.now().year} Vetter Pharma-Fertigung GmbH & Co. KG. All rights reserved.',
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -3731,7 +3731,7 @@ class MockShellLayout extends ConsumerWidget {
             ),
             Expanded(
               child: Text(
-                'Copyright © ${DateTime.now().year} Cappla. All rights reserved.',
+                'Copyright © ${DateTime.now().year} Vetter Pharma-Fertigung GmbH & Co. KG. All rights reserved.',
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,

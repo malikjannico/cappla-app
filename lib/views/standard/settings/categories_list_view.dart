@@ -241,13 +241,12 @@ class _CategoriesListViewState extends ConsumerState<CategoriesListView> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainer,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
-                  border: Border.all(
-                    color: theme.colorScheme.outlineVariant,
-                    width: 0.5,
+                  color: Colors.white,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: theme.colorScheme.primary,
+                      width: 2.0,
+                    ),
                   ),
                 ),
                 padding: const EdgeInsets.symmetric(
@@ -288,16 +287,8 @@ class _CategoriesListViewState extends ConsumerState<CategoriesListView> {
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
                     border: Border(
-                      left: BorderSide(
-                        color: theme.colorScheme.outlineVariant,
-                        width: 0.5,
-                      ),
-                      right: BorderSide(
-                        color: theme.colorScheme.outlineVariant,
-                        width: 0.5,
-                      ),
                       bottom: BorderSide(
-                        color: theme.colorScheme.outlineVariant,
+                        color: theme.colorScheme.primary,
                         width: 0.5,
                       ),
                     ),
@@ -325,18 +316,12 @@ class _CategoriesListViewState extends ConsumerState<CategoriesListView> {
                       child: Container(
                         decoration: BoxDecoration(
                           border: Border(
-                            left: BorderSide(
-                              color: theme.colorScheme.outlineVariant,
-                              width: 0.5,
-                            ),
-                            right: BorderSide(
-                              color: theme.colorScheme.outlineVariant,
-                              width: 0.5,
-                            ),
-                            bottom: BorderSide(
-                              color: theme.colorScheme.outlineVariant,
-                              width: 0.5,
-                            ),
+                            bottom: idx == displayedCategories.length - 1
+                                ? BorderSide.none
+                                : BorderSide(
+                                    color: theme.colorScheme.primary,
+                                    width: 0.5,
+                                  ),
                           ),
                         ),
                         padding: const EdgeInsets.symmetric(
@@ -1254,16 +1239,8 @@ Widget _buildTableSkeleton(ThemeData theme) {
       return Container(
         decoration: BoxDecoration(
           border: Border(
-            left: BorderSide(
-              color: theme.colorScheme.outlineVariant,
-              width: 0.5,
-            ),
-            right: BorderSide(
-              color: theme.colorScheme.outlineVariant,
-              width: 0.5,
-            ),
             bottom: BorderSide(
-              color: theme.colorScheme.outlineVariant,
+              color: theme.colorScheme.primary,
               width: 0.5,
             ),
           ),

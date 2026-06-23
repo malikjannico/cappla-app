@@ -11,6 +11,9 @@ import 'package:cappla/core/providers/providers.dart';
 import 'package:cappla/core/router/router_paths.dart';
 import 'package:cappla/core/router/router.dart';
 import 'package:cappla/views/standard/reports_view.dart';
+import 'package:cappla/models/activity_model.dart';
+import 'package:cappla/models/activity_group_model.dart';
+import 'package:cappla/models/category_model.dart';
 import 'e2e_test_harness.dart';
 
 void main() {
@@ -405,6 +408,242 @@ void main() {
         expect(find.byIcon(Icons.assignment), findsNothing);
         expect(find.byIcon(Icons.trending_up), findsNothing);
         expect(find.byIcon(Icons.difference), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Reports View Sorting (Activity Groups by order, Categories and Employees alphabetically A-Z) and Footer copyright Vetter Pharma',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1920, 1080);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        // Seed organization units before app launch to satisfy routing guards
+        final orgDQS = OrgUnitModel(
+          id: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
+          name: 'IT Document & Quality Solutions',
+          abbreviation: 'IT DQS',
+          headOfEmail: 'MalikJannico.Press@vetter-pharma.com',
+          type: 'department',
+          parentId: '8e6c4643-7a3c-4467-93e1-0fa138e6f1f3',
+          childIds: [],
+          status: 'Active',
+        );
+        harness.seedOrgUnit(orgDQS);
+
+        final orgUnit1 = OrgUnitModel(
+          id: 'org_unit_1',
+          name: 'IT DQS Team A',
+          abbreviation: 'IT DQS A',
+          headOfEmail: 'MalikJannico.Press@vetter-pharma.com',
+          type: 'section',
+          parentId: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
+          childIds: [],
+          status: 'Active',
+        );
+        harness.seedOrgUnit(orgUnit1);
+
+        final orgUnit2 = OrgUnitModel(
+          id: 'org_unit_2',
+          name: 'IT DQS Team B',
+          abbreviation: 'IT DQS B',
+          headOfEmail: 'MalikJannico.Press@vetter-pharma.com',
+          type: 'team',
+          parentId: 'org_unit_1',
+          childIds: [],
+          status: 'Active',
+        );
+        harness.seedOrgUnit(orgUnit2);
+
+        // Update admin user to be in the org unit
+        final adminUser = UserModel(
+          id: '00000000-0000-0000-0000-000000000000',
+          fullName: 'Malik Jannico Press',
+          email: 'MalikJannico.Press@vetter-pharma.com',
+          title: 'Administrator',
+          status: 'Active',
+          role: 'Administrator',
+          orgUnitId: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
+        );
+        harness.seedUser(adminUser, 'AdminPassword123!');
+
+        // Seed second employee: Abby (comes first alphabetically compared to Malik)
+        final otherUser = UserModel(
+          id: 'abby-uuid',
+          fullName: 'Abby Admin',
+          email: 'abby.admin@vetter-pharma.com',
+          title: 'Developer',
+          status: 'Active',
+          role: 'Standard',
+          orgUnitId: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
+        );
+        harness.seedUser(otherUser, 'AbbyPassword123!');
+
+        // Seed two activity groups:
+        // Group B: order 2, name 'B Group'
+        // Group A: order 1, name 'A Group' (comes first by order, even though we seed B first)
+        final groupB = ActivityGroupModel(
+          id: 'group_b',
+          name: 'B Group',
+          ownerOrgUnitId: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
+          sharedOrgUnitIds: [],
+          appliedOrgUnitIds: [],
+          statusMap: {'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d': 'Active'},
+          createdBy: 'system',
+          createdAt: DateTime.now(),
+          lastModifiedBy: 'system',
+          lastModifiedAt: DateTime.now(),
+          order: 2,
+        );
+        harness.mockFirestore.setData('activityGroups', 'group_b', groupB.toMap());
+
+        final groupA = ActivityGroupModel(
+          id: 'group_a',
+          name: 'A Group',
+          ownerOrgUnitId: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
+          sharedOrgUnitIds: [],
+          appliedOrgUnitIds: [],
+          statusMap: {'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d': 'Active'},
+          createdBy: 'system',
+          createdAt: DateTime.now(),
+          lastModifiedBy: 'system',
+          lastModifiedAt: DateTime.now(),
+          order: 1,
+        );
+        harness.mockFirestore.setData('activityGroups', 'group_a', groupA.toMap());
+
+        // Seed categories:
+        // Cat B: name 'Beta Cat'
+        // Cat A: name 'Alpha Cat' (comes first alphabetically, even though we seed B first)
+        final catB = CategoryModel(
+          id: 'cat_b',
+          name: 'Beta Cat',
+          ownerOrgUnitId: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
+          sharedOrgUnitIds: [],
+          appliedOrgUnitIds: [],
+          statusMap: {
+            'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d': 'Active',
+          },
+          createdBy: 'system',
+          createdAt: DateTime.now(),
+          lastModifiedBy: 'system',
+          lastModifiedAt: DateTime.now(),
+          order: 2,
+        );
+        harness.mockFirestore.setData('categories', 'cat_b', catB.toMap());
+
+        final catA = CategoryModel(
+          id: 'cat_a',
+          name: 'Alpha Cat',
+          ownerOrgUnitId: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
+          sharedOrgUnitIds: [],
+          appliedOrgUnitIds: [],
+          statusMap: {
+            'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d': 'Active',
+          },
+          createdBy: 'system',
+          createdAt: DateTime.now(),
+          lastModifiedBy: 'system',
+          lastModifiedAt: DateTime.now(),
+          order: 1,
+        );
+        harness.mockFirestore.setData('categories', 'cat_a', catA.toMap());
+
+        // Seed activities to bind everything
+        final act1 = ActivityModel(
+          id: 'act_1',
+          name: 'Activity A',
+          activityGroupId: 'group_a',
+          type: 'Standard',
+          ownerOrgUnitId: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
+          sharedOrgUnitIds: [],
+          appliedOrgUnitIds: [],
+          statusMap: {'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d': 'Active'},
+          assignedUserEmails: ['MalikJannico.Press@vetter-pharma.com'],
+          categoryId: 'cat_a',
+          createdBy: 'system',
+          createdAt: DateTime.now(),
+          lastModifiedBy: 'system',
+          lastModifiedAt: DateTime.now(),
+          order: 1,
+        );
+        harness.mockFirestore.setData('activities', 'act_1', act1.toMap());
+
+        final act2 = ActivityModel(
+          id: 'act_2',
+          name: 'Activity B',
+          activityGroupId: 'group_b',
+          type: 'Standard',
+          ownerOrgUnitId: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
+          sharedOrgUnitIds: [],
+          appliedOrgUnitIds: [],
+          statusMap: {'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d': 'Active'},
+          assignedUserEmails: ['abby.admin@vetter-pharma.com'],
+          categoryId: 'cat_b',
+          createdBy: 'system',
+          createdAt: DateTime.now(),
+          lastModifiedBy: 'system',
+          lastModifiedAt: DateTime.now(),
+          order: 2,
+        );
+        harness.mockFirestore.setData('activities', 'act_2', act2.toMap());
+
+        // Pump app
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: harness.container,
+            child: const CapplaApp(),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Log in
+        await tester.enterText(find.byKey(const Key('login_email_input')), 'MalikJannico.Press@vetter-pharma.com');
+        await tester.tap(find.byKey(const Key('login_next_button')));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(find.byKey(const Key('login_password_input')), 'AdminPassword123!');
+        await tester.tap(find.byKey(const Key('login_submit_button')));
+        await tester.pumpAndSettle();
+
+        // Navigate to Reports View
+        harness.container.read(routerProvider).go(RouterPaths.reports);
+        await tester.pumpAndSettle();
+
+        // Verify footer copyright text
+        expect(
+          find.textContaining('Vetter Pharma-Fertigung GmbH & Co. KG'),
+          findsAtLeast(1),
+        );
+
+        // We want to verify the display order of the rows in the three tables.
+        // The first table is Activity Groups. Rows: 'A Group', then 'B Group'.
+        expect(find.text('A Group'), findsAtLeast(1));
+        expect(find.text('B Group'), findsAtLeast(1));
+
+        // The second table is Categories. Rows: 'Alpha Cat', then 'Beta Cat'.
+        expect(find.text('Alpha Cat'), findsAtLeast(1));
+        expect(find.text('Beta Cat'), findsAtLeast(1));
+
+        // The third table is Employees. Rows: 'Abby Admin', then 'Malik Jannico Press'.
+        expect(find.text('Abby Admin'), findsAtLeast(1));
+        expect(find.text('Malik Jannico Press'), findsAtLeast(1));
+
+        // Check relative positions of the text to confirm sorting order in the widget tree.
+        final aGroupPos = tester.getCenter(find.text('A Group').first);
+        final bGroupPos = tester.getCenter(find.text('B Group').first);
+        expect(aGroupPos.dy, lessThan(bGroupPos.dy));
+
+        final alphaCatPos = tester.getCenter(find.text('Alpha Cat').first);
+        final betaCatPos = tester.getCenter(find.text('Beta Cat').first);
+        expect(alphaCatPos.dy, lessThan(betaCatPos.dy));
+
+        final abbyPos = tester.getCenter(find.text('Abby Admin').first);
+        final malikPos = tester.getCenter(find.text('Malik Jannico Press').first);
+        expect(abbyPos.dy, lessThan(malikPos.dy));
       },
     );
   });

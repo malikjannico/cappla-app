@@ -270,7 +270,9 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
       List<_RowEntity> rowEntities = [];
       if (tableType == 'employee') {
         if (ouEmployees.isNotEmpty) {
-          rowEntities = ouEmployees
+          final sortedEmployees = List<UserModel>.from(ouEmployees)
+            ..sort((a, b) => a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase()));
+          rowEntities = sortedEmployees
               .map((e) => _RowEntity(id: e.email, name: e.fullName))
               .toList();
         }
@@ -284,6 +286,7 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
             )
             .toList();
         if (ouEmployees.isNotEmpty && ouCategories.isNotEmpty) {
+          ouCategories.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
           rowEntities = ouCategories
               .map((c) => _RowEntity(id: c.id, name: c.name))
               .toList();
@@ -302,6 +305,7 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
             )
             .toList();
         if (ouEmployees.isNotEmpty && ouGroups.isNotEmpty) {
+          ouGroups.sort((a, b) => a.order.compareTo(b.order));
           rowEntities = ouGroups
               .map((g) => _RowEntity(id: g.id, name: g.name))
               .toList();
@@ -1210,7 +1214,9 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
           List<_RowEntity> rowEntities = [];
           if (tableType == 'employee') {
             if (ouEmployees.isNotEmpty) {
-              rowEntities = ouEmployees
+              final sortedEmployees = List<UserModel>.from(ouEmployees)
+                ..sort((a, b) => a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase()));
+              rowEntities = sortedEmployees
                   .map((e) => _RowEntity(id: e.email, name: e.fullName))
                   .toList();
             }
@@ -1224,6 +1230,7 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
                 )
                 .toList();
             if (ouEmployees.isNotEmpty && ouCategories.isNotEmpty) {
+              ouCategories.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
               rowEntities = ouCategories
                   .map((c) => _RowEntity(id: c.id, name: c.name))
                   .toList();
@@ -1242,6 +1249,7 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
                 )
                 .toList();
             if (ouEmployees.isNotEmpty && ouGroups.isNotEmpty) {
+              ouGroups.sort((a, b) => a.order.compareTo(b.order));
               rowEntities = ouGroups
                   .map((g) => _RowEntity(id: g.id, name: g.name))
                   .toList();

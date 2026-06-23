@@ -211,7 +211,17 @@ void main() {
         final cellKey = const Key(
           'edit_malikjannico.press@vetter-pharma.com_66666666-7777-8888-9999-000000000000_1',
         );
-        await tester.enterText(find.byKey(cellKey), '10.0');
+        final textFieldFinder = find.byKey(cellKey);
+        expect(textFieldFinder, findsOneWidget);
+        final textField = tester.widget<TextField>(textFieldFinder);
+        expect(textField.expands, isTrue);
+        expect(textField.maxLines, isNull);
+        expect(textField.minLines, isNull);
+        expect(textField.textAlignVertical, equals(TextAlignVertical.center));
+        expect(textField.decoration?.border, equals(InputBorder.none));
+        expect(textField.decoration?.enabledBorder, equals(InputBorder.none));
+        expect(textField.decoration?.focusedBorder, equals(InputBorder.none));
+        await tester.enterText(textFieldFinder, '10.0');
         await tester.pumpAndSettle();
 
         // Save edits

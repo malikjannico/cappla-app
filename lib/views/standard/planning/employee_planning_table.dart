@@ -2433,49 +2433,56 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
               width: double.infinity,
               height: double.infinity,
               child: isCellEditing
-                  ? Center(
-                      child: TextField(
-                        key: Key('edit_${rowKey}_${index + 1}'),
-                        controller: _getOrCreateController(
-                          focusKey,
-                          displayVal,
-                          isEditing: isCellEditing,
-                        ),
-                        focusNode: cellFocusNode,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        textAlign: TextAlign.center,
-                        style: cellStyle,
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          isCollapsed: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        onTap: () {
-                          if (_cellEditMode != CellEditMode.typingFromDouble) {
-                            final ctrl = widget.controllersCache[focusKey];
-                            if (ctrl != null) {
-                              ctrl.selection = TextSelection(
-                                baseOffset: 0,
-                                extentOffset: ctrl.text.length,
-                              );
-                            }
-                          }
-                        },
-                        onChanged: (text) {
-                          final parsed = double.tryParse(text) ?? 0.0;
-                          onChanged(index, parsed);
-                        },
-                        onSubmitted: (text) {
-                          final parsed = double.tryParse(text) ?? 0.0;
-                          onChanged(index, parsed);
-                          setState(() {
-                            _cellEditMode = CellEditMode.selected;
-                          });
-                          _tableFocusNode.requestFocus();
-                        },
+                  ? TextField(
+                      key: Key('edit_${rowKey}_${index + 1}'),
+                      controller: _getOrCreateController(
+                        focusKey,
+                        displayVal,
+                        isEditing: isCellEditing,
                       ),
+                      focusNode: cellFocusNode,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      textAlign: TextAlign.center,
+                      textAlignVertical: TextAlignVertical.center,
+                      maxLines: null,
+                      minLines: null,
+                      expands: true,
+                      style: cellStyle,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        isCollapsed: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      onTap: () {
+                        if (_cellEditMode != CellEditMode.typingFromDouble) {
+                          final ctrl = widget.controllersCache[focusKey];
+                          if (ctrl != null) {
+                            ctrl.selection = TextSelection(
+                              baseOffset: 0,
+                              extentOffset: ctrl.text.length,
+                            );
+                          }
+                        }
+                      },
+                      onChanged: (text) {
+                        final parsed = double.tryParse(text) ?? 0.0;
+                        onChanged(index, parsed);
+                      },
+                      onSubmitted: (text) {
+                        final parsed = double.tryParse(text) ?? 0.0;
+                        onChanged(index, parsed);
+                        setState(() {
+                          _cellEditMode = CellEditMode.selected;
+                        });
+                        _tableFocusNode.requestFocus();
+                      },
                     )
                   : Center(
                       child: Text(

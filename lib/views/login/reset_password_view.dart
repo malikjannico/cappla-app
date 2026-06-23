@@ -702,7 +702,7 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
             ),
             Expanded(
               child: Text(
-                'Copyright © ${DateTime.now().year} Cappla. All rights reserved.',
+                'Copyright © ${DateTime.now().year} Vetter Pharma-Fertigung GmbH & Co. KG. All rights reserved.',
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
