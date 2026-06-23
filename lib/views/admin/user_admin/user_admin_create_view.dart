@@ -65,7 +65,7 @@ class _UserAdminCreateViewState extends ConsumerState<UserAdminCreateView> {
         id: const Uuid().v4(),
         fullName: fullName,
         email: email,
-        title: title.isEmpty ? 'Specialist' : title,
+        title: title,
         status: 'Active',
         role: _role,
         orgUnitId: _orgUnitId,
