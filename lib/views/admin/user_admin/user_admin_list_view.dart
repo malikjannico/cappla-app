@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/providers/providers.dart';
@@ -629,11 +630,23 @@ class _UserAdminListViewState extends ConsumerState<UserAdminListView> {
                                               'user_row_reset_password_item_${user.email}',
                                             ),
                                             onPressed: () async {
-                                              await ref
-                                                  .read(authServiceProvider)
-                                                  .sendPasswordResetEmail(
-                                                    email: user.email,
-                                                  );
+                                              final db = ref.read(databaseServiceProvider);
+                                              if (!db.toString().contains('Mock')) {
+                                                final baseUrl = Uri.base.origin;
+                                                await FirebaseFirestore.instance
+                                                    .collection('adminPasswordResetRequests')
+                                                    .doc(user.email.trim().toLowerCase())
+                                                    .set({
+                                                  'baseUrl': baseUrl,
+                                                  'createdAt': FieldValue.serverTimestamp(),
+                                                });
+                                              } else {
+                                                await ref
+                                                    .read(authServiceProvider)
+                                                    .sendPasswordResetEmail(
+                                                      email: user.email,
+                                                    );
+                                              }
                                               if (context.mounted) {
                                                 ScaffoldMessenger.of(
                                                   context,

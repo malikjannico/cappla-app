@@ -29,6 +29,10 @@ const templates = [
   {
     name: 'password_updated',
     vars: {}
+  },
+  {
+    name: 'admin_password_reset',
+    vars: { resetLink: 'https://app-dev.cappla.de/#/reset-password?email=user.name@app-dev.cappla.de&trigger=true' }
   }
 ];
 

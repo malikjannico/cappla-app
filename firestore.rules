@@ -105,6 +105,10 @@ service cloud.firestore {
       allow create: if isAdmin();
     }
 
+    match /adminPasswordResetRequests/{email} {
+      allow create: if isAdmin();
+    }
+
     match /passwordResetRequests/{email} {
       allow get, delete: if true;
       allow create, update: if email.size() < 128

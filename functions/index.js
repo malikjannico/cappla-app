@@ -285,3 +285,34 @@ exports.onSendActivationEmail = functions.region('europe-west3').firestore
       console.error('Error in onSendActivationEmail:', err);
     }
   });
+
+// 5. Triggered when a new document is written to /adminPasswordResetRequests/{email}
+exports.onSendAdminPasswordResetEmail = functions.region('europe-west3').firestore
+  .document('adminPasswordResetRequests/{email}')
+  .onCreate(async (snap, context) => {
+    const email = context.params.email.toLowerCase().trim();
+    const data = snap.data();
+    
+    try {
+      const baseUrl = data.baseUrl;
+      if (!baseUrl) {
+        console.error('No baseUrl provided in admin password reset request.');
+        return;
+      }
+
+      // Link to the reset password page of the correct environment pre-populated with the email
+      const resetLink = `${APP_BASE_URL}/#/reset-password?email=${encodeURIComponent(email)}&trigger=true`;
+
+      const html = loadTemplate('admin_password_reset', { resetLink: resetLink });
+      
+      await sendMail(email, 'Reset Your Cappla Password', html);
+      console.log(`Successfully sent admin password reset email to ${email}`);
+
+      // Delete the request document after successful sending
+      await snap.ref.delete();
+      
+    } catch (err) {
+      console.error('Error in onSendAdminPasswordResetEmail:', err);
+    }
+  });
+

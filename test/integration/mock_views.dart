@@ -1,6 +1,7 @@
 // ignore_for_file: use_super_parameters, unnecessary_brace_in_string_interps, avoid_print, dead_code, dead_null_aware_expression, unused_local_variable, unused_field, deprecated_member_use, unused_element_parameter
 
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -4371,10 +4372,22 @@ class _MockUserAdminPageState extends ConsumerState<MockUserAdminPage> {
                                               'user_row_reset_password_item_${user.email}',
                                             ),
                                             onPressed: () {
-                                              ((ref.read(firebaseAuthProvider) as dynamic))
-                                                  .sendPasswordResetEmail(
-                                                    email: user.email,
-                                                  );
+                                              final db = ref.read(databaseServiceProvider);
+                                              if (!db.toString().contains('Mock')) {
+                                                final baseUrl = Uri.base.origin;
+                                                FirebaseFirestore.instance
+                                                    .collection('adminPasswordResetRequests')
+                                                    .doc(user.email.trim().toLowerCase())
+                                                    .set({
+                                                  'baseUrl': baseUrl,
+                                                  'createdAt': FieldValue.serverTimestamp(),
+                                                });
+                                              } else {
+                                                ((ref.read(firebaseAuthProvider) as dynamic))
+                                                    .sendPasswordResetEmail(
+                                                      email: user.email,
+                                                    );
+                                              }
                                             },
                                             child: const Text('Reset Password'),
                                           ),
@@ -5116,10 +5129,22 @@ class _MockUserDetailPageState extends ConsumerState<MockUserDetailPage> {
                                         'user_detail_reset_password_item',
                                       ),
                                       onPressed: () {
-                                        ((ref.read(firebaseAuthProvider) as dynamic))
-                                            .sendPasswordResetEmail(
-                                              email: user.email,
-                                            );
+                                        final db = ref.read(databaseServiceProvider);
+                                        if (!db.toString().contains('Mock')) {
+                                          final baseUrl = Uri.base.origin;
+                                          FirebaseFirestore.instance
+                                              .collection('adminPasswordResetRequests')
+                                              .doc(user.email.trim().toLowerCase())
+                                              .set({
+                                            'baseUrl': baseUrl,
+                                            'createdAt': FieldValue.serverTimestamp(),
+                                          });
+                                        } else {
+                                          ((ref.read(firebaseAuthProvider) as dynamic))
+                                              .sendPasswordResetEmail(
+                                                email: user.email,
+                                              );
+                                        }
                                       },
                                       child: const Text('Reset Password'),
                                     ),
