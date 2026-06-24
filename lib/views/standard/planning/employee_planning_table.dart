@@ -464,7 +464,8 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
     for (final group in widget.groups) {
       final groupActivities = widget.activities
           .where((act) => act.activityGroupId == group.id)
-          .toList();
+          .toList()
+        ..sort((a, b) => a.order.compareTo(b.order));
       if (groupActivities.isEmpty) continue;
       rowMappings.add(
         EmployeeRowMapping(type: EmployeeRowType.groupHeader, group: group),

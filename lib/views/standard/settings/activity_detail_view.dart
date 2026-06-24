@@ -641,7 +641,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         controller: TextEditingController(text: activity.name),
                         decoration: const InputDecoration(
                           labelText: 'Activity Name',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -657,7 +658,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         ),
                         decoration: const InputDecoration(
                           labelText: 'Activity Group',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -673,7 +675,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         ),
                         decoration: const InputDecoration(
                           labelText: 'Category',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -687,7 +690,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         controller: TextEditingController(text: activity.type),
                         decoration: const InputDecoration(
                           labelText: 'Type',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       if (activity.type == 'Limited') ...[
@@ -702,7 +706,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                           controller: TextEditingController(text: validityStr),
                           decoration: const InputDecoration(
                             labelText: 'Validity',
-                            border: OutlineInputBorder(),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
                           ),
                         ),
                       ],
@@ -719,7 +724,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         ),
                         decoration: const InputDecoration(
                           labelText: 'Created By',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -737,7 +743,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         ),
                         decoration: const InputDecoration(
                           labelText: 'Created At',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -753,7 +760,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         ),
                         decoration: const InputDecoration(
                           labelText: 'Last Modified By',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -772,7 +780,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         ),
                         decoration: const InputDecoration(
                           labelText: 'Last Modified At',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                     ],

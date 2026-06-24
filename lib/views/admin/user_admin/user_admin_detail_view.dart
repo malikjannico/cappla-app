@@ -573,7 +573,8 @@ class _UserAdminDetailViewState extends ConsumerState<UserAdminDetailView> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Full Name',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -589,7 +590,8 @@ class _UserAdminDetailViewState extends ConsumerState<UserAdminDetailView> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Email',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -605,7 +607,8 @@ class _UserAdminDetailViewState extends ConsumerState<UserAdminDetailView> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Title',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -621,7 +624,8 @@ class _UserAdminDetailViewState extends ConsumerState<UserAdminDetailView> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Role',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -647,7 +651,8 @@ class _UserAdminDetailViewState extends ConsumerState<UserAdminDetailView> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Org Unit',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -663,7 +668,8 @@ class _UserAdminDetailViewState extends ConsumerState<UserAdminDetailView> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Created By',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -681,7 +687,8 @@ class _UserAdminDetailViewState extends ConsumerState<UserAdminDetailView> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Created At',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -697,7 +704,8 @@ class _UserAdminDetailViewState extends ConsumerState<UserAdminDetailView> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Last Modified By',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -716,7 +724,8 @@ class _UserAdminDetailViewState extends ConsumerState<UserAdminDetailView> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Last Modified At',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                           ],

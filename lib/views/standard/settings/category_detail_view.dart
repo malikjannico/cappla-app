@@ -439,7 +439,8 @@ class _CategoryDetailViewState extends ConsumerState<CategoryDetailView> {
                         controller: TextEditingController(text: category.name),
                         decoration: const InputDecoration(
                           labelText: 'Category Name',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -455,7 +456,8 @@ class _CategoryDetailViewState extends ConsumerState<CategoryDetailView> {
                         ),
                         decoration: const InputDecoration(
                           labelText: 'Created By',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -473,7 +475,8 @@ class _CategoryDetailViewState extends ConsumerState<CategoryDetailView> {
                         ),
                         decoration: const InputDecoration(
                           labelText: 'Created At',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -489,7 +492,8 @@ class _CategoryDetailViewState extends ConsumerState<CategoryDetailView> {
                         ),
                         decoration: const InputDecoration(
                           labelText: 'Last Modified By',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -508,7 +512,8 @@ class _CategoryDetailViewState extends ConsumerState<CategoryDetailView> {
                         ),
                         decoration: const InputDecoration(
                           labelText: 'Last Modified At',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                     ],

@@ -453,7 +453,8 @@ class _ActivityGroupDetailViewState
                         controller: TextEditingController(text: group.name),
                         decoration: const InputDecoration(
                           labelText: 'Activity Group Name',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -469,7 +470,8 @@ class _ActivityGroupDetailViewState
                         ),
                         decoration: const InputDecoration(
                           labelText: 'Created By',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -487,7 +489,8 @@ class _ActivityGroupDetailViewState
                         ),
                         decoration: const InputDecoration(
                           labelText: 'Created At',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -505,7 +508,8 @@ class _ActivityGroupDetailViewState
                         ),
                         decoration: const InputDecoration(
                           labelText: 'Last Modified By',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -525,7 +529,8 @@ class _ActivityGroupDetailViewState
                         ),
                         decoration: const InputDecoration(
                           labelText: 'Last Modified At',
-                          border: OutlineInputBorder(),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
                     ],

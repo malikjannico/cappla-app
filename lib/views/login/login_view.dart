@@ -267,6 +267,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                           setState(() {
                             _showPasswordStep = false;
                             _errorMessage = '';
+                            _passwordController.clear();
                           });
                         },
                         style: TextButton.styleFrom(

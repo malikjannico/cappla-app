@@ -2067,7 +2067,8 @@ final Widget sumChild = Center(
                             ),
                             decoration: const InputDecoration(
                               labelText: 'Full Name',
-                              border: OutlineInputBorder(),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
                             ),
                           ),
                         ),
@@ -2081,7 +2082,8 @@ final Widget sumChild = Center(
                             ),
                             decoration: const InputDecoration(
                               labelText: 'Title',
-                              border: OutlineInputBorder(),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
                             ),
                           ),
                         ),
@@ -2095,7 +2097,8 @@ final Widget sumChild = Center(
                             ),
                             decoration: const InputDecoration(
                               labelText: 'Email',
-                              border: OutlineInputBorder(),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
                             ),
                           ),
                         ),
@@ -2109,7 +2112,8 @@ final Widget sumChild = Center(
                             ),
                             decoration: const InputDecoration(
                               labelText: 'Role',
-                              border: OutlineInputBorder(),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
                             ),
                           ),
                         ),
@@ -2123,7 +2127,8 @@ final Widget sumChild = Center(
                             ),
                             decoration: const InputDecoration(
                               labelText: 'Org Unit',
-                              border: OutlineInputBorder(),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
                             ),
                           ),
                         ),

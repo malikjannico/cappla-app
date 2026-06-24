@@ -1135,7 +1135,8 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                               controller: TextEditingController(text: org.name),
                               decoration: const InputDecoration(
                                 labelText: 'Name',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -1151,7 +1152,8 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Abbreviation',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -1167,7 +1169,8 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Type',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -1183,7 +1186,8 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                               ),
                               decoration: InputDecoration(
                                 labelText: getHeadOfLabel(org.type),
-                                border: const OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -1205,7 +1209,8 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Parent Org Unit',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -1221,7 +1226,8 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Created By',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -1239,7 +1245,8 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Created At',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -1255,7 +1262,8 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Last Modified By',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -1274,7 +1282,8 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Last Modified At',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                           ],
@@ -1644,7 +1653,7 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                                       .state =
                                   employee;
                               context.go(
-                                RouterPaths.adminUserDetailPath(employee.email),
+                                RouterPaths.adminUserDetailPath(employee.id),
                               );
                             },
                             child: Container(

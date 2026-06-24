@@ -256,6 +256,7 @@ class _MockLoginPageState extends ConsumerState<MockLoginPage> {
                           setState(() {
                             _showPasswordStep = false;
                             _errorMessage = '';
+                            _passwordController.clear();
                           });
                         },
                         style: TextButton.styleFrom(
@@ -2355,7 +2356,8 @@ class _MockProfilePageState extends ConsumerState<MockProfilePage> {
                             ),
                             decoration: const InputDecoration(
                               labelText: 'Full Name',
-                              border: OutlineInputBorder(),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
                             ),
                           ),
                         ),
@@ -2369,7 +2371,8 @@ class _MockProfilePageState extends ConsumerState<MockProfilePage> {
                             ),
                             decoration: const InputDecoration(
                               labelText: 'Title',
-                              border: OutlineInputBorder(),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
                             ),
                           ),
                         ),
@@ -2383,7 +2386,8 @@ class _MockProfilePageState extends ConsumerState<MockProfilePage> {
                             ),
                             decoration: const InputDecoration(
                               labelText: 'Email',
-                              border: OutlineInputBorder(),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
                             ),
                           ),
                         ),
@@ -2397,7 +2401,8 @@ class _MockProfilePageState extends ConsumerState<MockProfilePage> {
                             ),
                             decoration: const InputDecoration(
                               labelText: 'Org Unit',
-                              border: OutlineInputBorder(),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
                             ),
                           ),
                         ),
@@ -5332,7 +5337,8 @@ class _MockUserDetailPageState extends ConsumerState<MockUserDetailPage> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Full Name',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -5348,7 +5354,8 @@ class _MockUserDetailPageState extends ConsumerState<MockUserDetailPage> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Email',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -5364,7 +5371,8 @@ class _MockUserDetailPageState extends ConsumerState<MockUserDetailPage> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Title',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -5380,7 +5388,8 @@ class _MockUserDetailPageState extends ConsumerState<MockUserDetailPage> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Role',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -5406,7 +5415,8 @@ class _MockUserDetailPageState extends ConsumerState<MockUserDetailPage> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Org Unit',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -5422,7 +5432,8 @@ class _MockUserDetailPageState extends ConsumerState<MockUserDetailPage> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Created By',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -5440,7 +5451,8 @@ class _MockUserDetailPageState extends ConsumerState<MockUserDetailPage> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Created At',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -5456,7 +5468,8 @@ class _MockUserDetailPageState extends ConsumerState<MockUserDetailPage> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Last Modified By',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -5475,7 +5488,8 @@ class _MockUserDetailPageState extends ConsumerState<MockUserDetailPage> {
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Last Modified At',
-                                border: OutlineInputBorder(),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                           ],
@@ -7388,7 +7402,8 @@ class _MockOrgDetailPageState extends ConsumerState<MockOrgDetailPage> {
                           controller: TextEditingController(text: org.name),
                           decoration: const InputDecoration(
                             labelText: 'Name',
-                            border: OutlineInputBorder(),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -7404,7 +7419,8 @@ class _MockOrgDetailPageState extends ConsumerState<MockOrgDetailPage> {
                           ),
                           decoration: const InputDecoration(
                             labelText: 'Abbreviation',
-                            border: OutlineInputBorder(),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -7420,7 +7436,8 @@ class _MockOrgDetailPageState extends ConsumerState<MockOrgDetailPage> {
                           ),
                           decoration: const InputDecoration(
                             labelText: 'Type',
-                            border: OutlineInputBorder(),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -7436,7 +7453,8 @@ class _MockOrgDetailPageState extends ConsumerState<MockOrgDetailPage> {
                           ),
                           decoration: InputDecoration(
                             labelText: getHeadOfLabel(org.type),
-                            border: const OutlineInputBorder(),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -7452,7 +7470,8 @@ class _MockOrgDetailPageState extends ConsumerState<MockOrgDetailPage> {
                           ),
                           decoration: const InputDecoration(
                             labelText: 'Created By',
-                            border: OutlineInputBorder(),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -7470,7 +7489,8 @@ class _MockOrgDetailPageState extends ConsumerState<MockOrgDetailPage> {
                           ),
                           decoration: const InputDecoration(
                             labelText: 'Created At',
-                            border: OutlineInputBorder(),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -7486,7 +7506,8 @@ class _MockOrgDetailPageState extends ConsumerState<MockOrgDetailPage> {
                           ),
                           decoration: const InputDecoration(
                             labelText: 'Last Modified By',
-                            border: OutlineInputBorder(),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -7504,7 +7525,8 @@ class _MockOrgDetailPageState extends ConsumerState<MockOrgDetailPage> {
                           ),
                           decoration: const InputDecoration(
                             labelText: 'Last Modified At',
-                            border: OutlineInputBorder(),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
                           ),
                         ),
                       ],
@@ -10485,7 +10507,8 @@ class _MockCategoryDetailPageState
                       controller: TextEditingController(text: category.name),
                       decoration: const InputDecoration(
                         labelText: 'Category Name',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -10496,7 +10519,8 @@ class _MockCategoryDetailPageState
                       ),
                       decoration: const InputDecoration(
                         labelText: 'Created By',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -10509,7 +10533,8 @@ class _MockCategoryDetailPageState
                       ),
                       decoration: const InputDecoration(
                         labelText: 'Created At',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -10520,7 +10545,8 @@ class _MockCategoryDetailPageState
                       ),
                       decoration: const InputDecoration(
                         labelText: 'Last Modified By',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -10534,7 +10560,8 @@ class _MockCategoryDetailPageState
                       ),
                       decoration: const InputDecoration(
                         labelText: 'Last Modified At',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                   ],
@@ -12677,7 +12704,8 @@ class _MockActivityGroupDetailPageState
                       controller: TextEditingController(text: group.name),
                       decoration: const InputDecoration(
                         labelText: 'Activity Group Name',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -12686,7 +12714,8 @@ class _MockActivityGroupDetailPageState
                       controller: TextEditingController(text: group.createdBy),
                       decoration: const InputDecoration(
                         labelText: 'Created By',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -12699,7 +12728,8 @@ class _MockActivityGroupDetailPageState
                       ),
                       decoration: const InputDecoration(
                         labelText: 'Created At',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -12710,7 +12740,8 @@ class _MockActivityGroupDetailPageState
                       ),
                       decoration: const InputDecoration(
                         labelText: 'Last Modified By',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -12723,7 +12754,8 @@ class _MockActivityGroupDetailPageState
                       ),
                       decoration: const InputDecoration(
                         labelText: 'Last Modified At',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                   ],
@@ -14485,7 +14517,8 @@ class _MockActivityDetailPageState
                       controller: TextEditingController(text: act.name),
                       decoration: const InputDecoration(
                         labelText: 'Activity Name',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -14494,7 +14527,8 @@ class _MockActivityDetailPageState
                       controller: TextEditingController(text: act.createdBy),
                       decoration: const InputDecoration(
                         labelText: 'Created By',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -14505,7 +14539,8 @@ class _MockActivityDetailPageState
                       ),
                       decoration: const InputDecoration(
                         labelText: 'Created At',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -14516,7 +14551,8 @@ class _MockActivityDetailPageState
                       ),
                       decoration: const InputDecoration(
                         labelText: 'Last Modified By',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -14529,7 +14565,8 @@ class _MockActivityDetailPageState
                       ),
                       decoration: const InputDecoration(
                         labelText: 'Last Modified At',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -14538,7 +14575,8 @@ class _MockActivityDetailPageState
                       controller: TextEditingController(text: groupName),
                       decoration: const InputDecoration(
                         labelText: 'Activity Group',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -14547,7 +14585,8 @@ class _MockActivityDetailPageState
                       controller: TextEditingController(text: catName),
                       decoration: const InputDecoration(
                         labelText: 'Category',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -14556,7 +14595,8 @@ class _MockActivityDetailPageState
                       controller: TextEditingController(text: act.type),
                       decoration: const InputDecoration(
                         labelText: 'Type',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -14565,7 +14605,8 @@ class _MockActivityDetailPageState
                       controller: TextEditingController(text: validityText),
                       decoration: const InputDecoration(
                         labelText: 'Validity',
-                        border: OutlineInputBorder(),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                   ],
