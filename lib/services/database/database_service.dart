@@ -1,10 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../models/user_model.dart';
 import '../../models/org_unit_model.dart';
 import 'firestore_database_service.dart';
-import 'mock_database_service.dart';
 import '../../core/providers/providers.dart';
 
 class DatabaseValidationException implements Exception {
@@ -92,10 +89,5 @@ abstract class DatabaseService {
 
 final databaseServiceProvider = Provider<DatabaseService>((ref) {
   final db = ref.watch(firestoreProvider);
-  try {
-    (db as dynamic).collections;
-    return MockFirestoreDatabaseServiceWrapper(db as dynamic);
-  } catch (_) {
-    return FirestoreDatabaseService(db as FirebaseFirestore);
-  }
+  return FirestoreDatabaseService(db);
 });

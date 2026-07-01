@@ -1,7 +1,9 @@
+import 'enums.dart';
+
 class UserCapacityModel {
   final String id;
   final String userEmail;
-  final String type; // "Standard" | "Specific"
+  final CapacityType type;
   final DateTime? startDate;
   final DateTime? endDate;
   final double monday;
@@ -19,7 +21,7 @@ class UserCapacityModel {
   UserCapacityModel({
     required this.id,
     required String userEmail,
-    required this.type,
+    required dynamic type,
     this.startDate,
     this.endDate,
     required this.monday,
@@ -34,6 +36,7 @@ class UserCapacityModel {
     String? lastModifiedBy,
     DateTime? lastModifiedAt,
   }) : userEmail = userEmail.trim().toLowerCase(),
+       type = type is CapacityType ? type : CapacityType.fromString(type.toString()),
        createdBy = createdBy ?? 'system',
        createdAt = createdAt ?? DateTime.now(),
        lastModifiedBy = lastModifiedBy ?? 'system',
@@ -45,7 +48,7 @@ class UserCapacityModel {
   UserCapacityModel copyWith({
     String? id,
     String? userEmail,
-    String? type,
+    dynamic type,
     DateTime? Function()? startDate,
     DateTime? Function()? endDate,
     double? monday,
@@ -81,7 +84,7 @@ class UserCapacityModel {
   Map<String, dynamic> toMap() => {
     'id': id,
     'userEmail': userEmail,
-    'type': type,
+    'type': type.value,
     'startDate': startDate?.toIso8601String(),
     'endDate': endDate?.toIso8601String(),
     'monday': monday,
@@ -113,18 +116,18 @@ class UserCapacityModel {
     }
 
     return UserCapacityModel(
-      id: map['id'],
-      userEmail: map['userEmail'],
-      type: map['type'],
+      id: map['id'] ?? '',
+      userEmail: map['userEmail'] ?? '',
+      type: CapacityType.fromString(map['type'] ?? 'Standard'),
       startDate: parseDate(map['startDate']),
       endDate: parseDate(map['endDate']),
-      monday: (map['monday'] as num).toDouble(),
-      tuesday: (map['tuesday'] as num).toDouble(),
-      wednesday: (map['wednesday'] as num).toDouble(),
-      thursday: (map['thursday'] as num).toDouble(),
-      friday: (map['friday'] as num).toDouble(),
-      saturday: (map['saturday'] as num).toDouble(),
-      sunday: (map['sunday'] as num).toDouble(),
+      monday: (map['monday'] as num?)?.toDouble() ?? 0.0,
+      tuesday: (map['tuesday'] as num?)?.toDouble() ?? 0.0,
+      wednesday: (map['wednesday'] as num?)?.toDouble() ?? 0.0,
+      thursday: (map['thursday'] as num?)?.toDouble() ?? 0.0,
+      friday: (map['friday'] as num?)?.toDouble() ?? 0.0,
+      saturday: (map['saturday'] as num?)?.toDouble() ?? 0.0,
+      sunday: (map['sunday'] as num?)?.toDouble() ?? 0.0,
       createdBy: map['createdBy'] ?? 'system',
       createdAt: parseDate(map['createdAt']) ?? DateTime.now(),
       lastModifiedBy: map['lastModifiedBy'] ?? 'system',

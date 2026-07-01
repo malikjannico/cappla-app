@@ -5,7 +5,7 @@ import '../../../core/providers/providers.dart';
 import '../../../core/router/router_paths.dart';
 import '../../../core/theme/theme_extensions.dart';
 import '../../../models/org_unit_model.dart';
-import '../../admin/org_admin/org_admin_view.dart' show PageIndicatorInput;
+import '../../admin/org_admin/org_admin_list_view.dart' show PageIndicatorInput;
 import 'categories_list_view.dart' show ShareWizardModal, ApplyModal;
 import 'category_create_view.dart' show BreadcrumbLink;
 import 'change_ownership_dialog.dart';
@@ -834,7 +834,7 @@ class _ActivityGroupDetailViewState
                           return c.name;
                         })();
 
-                        final validityStr = act.type == 'Limited'
+                        final validityStr = act.type == ActivityType.limited
                             ? '${act.validityStart?.toLocal().toString().split(' ')[0]} to ${act.validityEnd?.toLocal().toString().split(' ')[0]}'
                             : '-';
 
@@ -880,7 +880,7 @@ class _ActivityGroupDetailViewState
                                   ),
                                 ),
                                 Expanded(flex: 2, child: Text(categoryName)),
-                                Expanded(flex: 2, child: Text(act.type)),
+                                Expanded(flex: 2, child: Text(act.type.value)),
                                 Expanded(flex: 3, child: Text(validityStr)),
                                 SizedBox(
                                   width: 180,

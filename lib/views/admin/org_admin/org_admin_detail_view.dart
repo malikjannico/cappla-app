@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/router/router_paths.dart';
 import '../../../core/theme/theme_extensions.dart';
-import '../../../models/user_model.dart';
 import '../../../models/org_unit_model.dart';
 
 final _usersStreamProvider = StreamProvider.autoDispose<List<UserModel>>((ref) {
@@ -22,15 +21,15 @@ final _orgStreamProvider = StreamProvider.autoDispose
       return ref.watch(databaseServiceProvider).watchOrgUnit(id);
     });
 
-class OrgDetailView extends ConsumerStatefulWidget {
+class OrgAdminDetailView extends ConsumerStatefulWidget {
   final String id;
-  const OrgDetailView({super.key, required this.id});
+  const OrgAdminDetailView({super.key, required this.id});
 
   @override
-  ConsumerState<OrgDetailView> createState() => _OrgDetailViewState();
+  ConsumerState<OrgAdminDetailView> createState() => _OrgAdminDetailViewState();
 }
 
-class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
+class _OrgAdminDetailViewState extends ConsumerState<OrgAdminDetailView> {
   final _employeeSearchController = TextEditingController();
   final _childSearchController = TextEditingController();
   final _childIdInputController = TextEditingController(text: 'CHILD_DEPT');
@@ -64,7 +63,7 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
   }
 
   @override
-  void didUpdateWidget(OrgDetailView oldWidget) {
+  void didUpdateWidget(OrgAdminDetailView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.id != widget.id) {
       _formInitialized = false;
@@ -503,12 +502,7 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                               await ref
                                   .read(databaseServiceProvider)
                                   .saveUser(updatedUser);
-                              final currentUser = ref.read(currentUserProvider);
-                              if (currentUser != null &&
-                                  currentUser.email == updatedUser.email) {
-                                ref.read(currentUserProvider.notifier).state =
-                                    updatedUser;
-                              }
+
                             }
                             if (context.mounted) {
                               Navigator.of(context).pop();
@@ -2139,7 +2133,7 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
                                       flex: 2,
                                       child: Text(child.abbreviation),
                                     ),
-                                    Expanded(flex: 2, child: Text(child.type)),
+                                    Expanded(flex: 2, child: Text(child.type.value)),
                                     SizedBox(
                                       width: 180,
                                       child: Row(
@@ -2280,8 +2274,8 @@ class _OrgDetailViewState extends ConsumerState<OrgDetailView> {
   }
 }
 
-String getHeadOfLabel(String type) {
-  switch (type.toLowerCase()) {
+String getHeadOfLabel(dynamic type) {
+  switch (type.toString().toLowerCase()) {
     case 'md division':
       return 'Managing Director';
     case 'svp division':
@@ -2299,15 +2293,15 @@ String getHeadOfLabel(String type) {
   }
 }
 
-String formatOrgType(String type) {
-  final lower = type.toLowerCase();
+String formatOrgType(dynamic type) {
+  final lower = type.toString().toLowerCase();
   if (lower == 'md division') return 'MD Division';
   if (lower == 'svp division') return 'SVP Division';
   if (lower == 'vp division') return 'VP Division';
   if (lower == 'department') return 'Department';
   if (lower == 'group') return 'Group';
   if (lower == 'team') return 'Team';
-  return type;
+  return type.toString();
 }
 
 class BreadcrumbLink extends StatefulWidget {
@@ -2431,8 +2425,8 @@ class _PageIndicatorInputState extends State<PageIndicatorInput> {
   }
 }
 
-Widget _buildStatusChip(String status, ThemeData theme, BuildContext context) {
-  final isActive = status == 'Active';
+Widget _buildStatusChip(dynamic status, ThemeData theme, BuildContext context) {
+  final isActive = status.toString() == 'Active';
   final colors = context.colors;
 
   final bgColor = isActive

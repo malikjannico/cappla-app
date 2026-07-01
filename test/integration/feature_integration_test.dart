@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cappla/main.dart';
-import 'package:cappla/models/user_model.dart';
 import 'package:cappla/models/org_unit_model.dart';
 import 'package:cappla/core/providers/providers.dart';
 import 'e2e_test_harness.dart';
@@ -306,6 +305,12 @@ void main() {
     testWidgets(
       'R2_HP_02: Administrator can switch Tab Collection dropdown to "Administration" and see Users/Orgs tabs',
       (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1200, 1000);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
         final harness = E2ETestHarness();
         final orgUnit = OrgUnitModel(
           id: 'DEPT_IT',

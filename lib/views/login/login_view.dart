@@ -49,12 +49,28 @@ class _LoginViewState extends ConsumerState<LoginView> {
     try {
       final authService = ref.read(authServiceProvider);
       final email = _emailController.text.trim().toLowerCase();
-      await authService.signIn(
-        email: email,
-        password: _passwordController.text,
+      final completer = Completer<void>();
+      final sub = ref.listenManual<UserModel?>(
+        currentUserProvider,
+        (previous, next) {
+          debugPrint('login_view_listener: next=${next?.email}');
+          if (next?.email.trim().toLowerCase() == email) {
+            debugPrint('login_view_listener: MATCHED email=$email');
+            if (!completer.isCompleted) completer.complete();
+          }
+        },
+        fireImmediately: true,
       );
-      final user = await ref.read(databaseServiceProvider).getUser(email);
-      ref.read(currentUserProvider.notifier).state = user;
+
+      try {
+        await authService.signIn(
+          email: email,
+          password: _passwordController.text,
+        );
+        await completer.future;
+      } finally {
+        sub.close();
+      }
       if (!mounted) return;
       context.go(RouterPaths.planning);
     } catch (e) {
@@ -79,8 +95,9 @@ class _LoginViewState extends ConsumerState<LoginView> {
       return;
     }
 
-    final db = ref.read(databaseServiceProvider);
-    if (db.toString().contains('Mock')) {
+    final isTesting = ref.read(appConfigProvider).isTesting;
+    final firestore = ref.read(firestoreProvider);
+    if (isTesting) {
       // For E2E Integration tests, mock the flow immediately
       ref.read(resetPasswordEmailProvider.notifier).state = email;
       ref.read(resetPasswordCodeProvider.notifier).state = '123456';
@@ -93,7 +110,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
     });
 
     try {
-      final firestore = FirebaseFirestore.instance;
       // Write the reset request to Firestore (delete first to guarantee onCreate trigger fires)
       await firestore.collection('passwordResetRequests').doc(email).delete().catchError((_) {});
       await firestore.collection('passwordResetRequests').doc(email).set({

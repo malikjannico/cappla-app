@@ -6,8 +6,8 @@ import 'router_paths.dart';
 // Interface representation of User Profile
 class UserProfile {
   final String email;
-  final String role; // "Administrator" or "User"
-  final String status; // "Active" or "Inactive"
+  final String role;
+  final String status;
   final String? orgUnitId;
   final bool isHeadOfOrg;
 
@@ -36,6 +36,7 @@ String? appRedirectGuard(
 ) {
   final isAuthenticated = authState.isAuthenticated;
   final currentUser = authState.currentUser;
+  debugPrint('appRedirectGuard: matchedLocation=${state.matchedLocation} isAuthenticated=$isAuthenticated currentUser=${currentUser?.email} currentUser.status=${currentUser?.status}');
 
   final isLoggingIn = state.matchedLocation == RouterPaths.login;
   final isResettingPassword =

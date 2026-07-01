@@ -5,7 +5,6 @@ import 'package:uuid/uuid.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/router/router_paths.dart';
 import '../../../models/org_unit_model.dart';
-import '../../../models/user_model.dart';
 import '../user_admin/user_admin_list_view.dart' show usersStreamProvider;
 
 class OrgAdminCreateView extends ConsumerStatefulWidget {

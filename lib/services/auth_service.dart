@@ -1,51 +1,41 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../models/user_model.dart';
 import '../core/providers/providers.dart';
 import 'database/database_service.dart';
 
 class AuthService {
-  final Object _auth;
+  final FirebaseAuth _auth;
   final DatabaseService _dbService;
   final bool _useEmulator;
+  final Ref _ref;
 
-  AuthService(this._auth, this._dbService, {required this._useEmulator});
-
-  FirebaseAuth get _firebaseAuth => _auth as FirebaseAuth;
+  AuthService(this._auth, this._dbService, this._ref, {required this._useEmulator});
 
   bool get hasCurrentUser {
-    if (_auth is FirebaseAuth) {
-      return _firebaseAuth.currentUser != null;
-    }
-    return (_auth as dynamic).currentUser != null;
+    return _auth.currentUser != null;
   }
 
   Stream<UserModel?> get userStateChanges {
-    final Stream<dynamic> authStateChangesStream;
-    if (_auth is FirebaseAuth) {
-      authStateChangesStream = _firebaseAuth.authStateChanges();
-    } else {
-      authStateChangesStream = (_auth as dynamic).authStateChanges() as Stream<dynamic>;
-    }
-    return authStateChangesStream.asyncExpand<UserModel?>((authUser) {
+    return _auth.authStateChanges().asyncExpand<UserModel?>((authUser) {
+      debugPrint('userStateChanges: authUser=${authUser?.email}');
       if (authUser == null) {
+        debugPrint('userStateChanges: authUser is null, yielding null');
         return Stream.value(null);
       }
       final String? email = authUser.email;
       if (email == null || email.isEmpty) {
+        debugPrint('userStateChanges: email is empty, yielding null');
         return Stream.value(null);
       }
+      debugPrint('userStateChanges: watching user by email=$email');
       return _dbService.watchUserByEmail(email);
     });
   }
 
   Future<void> signIn({required String email, required String password}) async {
-    if (_auth is FirebaseAuth) {
-      await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
-    } else {
-      await (_auth as dynamic).signInWithEmailAndPassword(email: email, password: password);
-    }
+    await _auth.signInWithEmailAndPassword(email: email, password: password);
     final user = await _dbService.getUser(email);
     if (user == null) {
       await signOut();
@@ -55,53 +45,54 @@ class AuthService {
       await signOut();
       throw Exception('Your account is Inactive. Access denied.');
     }
+    _ref.read(currentUserProvider.notifier).update(user);
   }
 
   Future<void> signOut() async {
-    if (_auth is FirebaseAuth) {
-      await _firebaseAuth.signOut();
-    } else {
-      await (_auth as dynamic).signOut();
-    }
+    await _auth.signOut();
+    _ref.read(currentUserProvider.notifier).update(null);
   }
 
   Future<void> sendPasswordResetEmail({required String email}) async {
-    if (_auth is FirebaseAuth) {
-      await _firebaseAuth.sendPasswordResetEmail(email: email);
-    } else {
-      await (_auth as dynamic).sendPasswordResetEmail(email: email);
-    }
+    await _auth.sendPasswordResetEmail(email: email);
   }
 
   Future<void> createUser(UserModel user, String password) async {
     try {
-      // For MockFirebaseAuth in E2E tests:
-      (_auth as dynamic).registerUser(user.email, password);
-    } catch (_) {
-      // For real FirebaseAuth:
-      // To avoid signing out the current admin user, use a secondary Firebase App.
+      // In testing (e.g. using fake/mock auth), we can register directly.
+      // Otherwise, we initialize a secondary Firebase App in production to avoid signing out the current admin.
+      final app = await Firebase.initializeApp(
+        name: 'Secondary',
+        options: Firebase.app().options,
+      );
       try {
-        final app = await Firebase.initializeApp(
-          name: 'Secondary',
-          options: Firebase.app().options,
+        final secondaryAuth = FirebaseAuth.instanceFor(app: app);
+        if (_useEmulator) {
+          try {
+            secondaryAuth.useAuthEmulator('127.0.0.1', 9099);
+          } catch (_) {}
+        }
+        await secondaryAuth.createUserWithEmailAndPassword(
+          email: user.email,
+          password: password,
         );
+      } finally {
+        await app.delete();
+      }
+    } catch (e) {
+      if (e.toString().contains('email-already-in-use')) {
+        // Ignore and proceed to save DB profile
+      } else {
+        // Fall back to direct mock/fake auth user creation in tests where Firebase is not initialized
         try {
-          final secondaryAuth = FirebaseAuth.instanceFor(app: app);
-          if (_useEmulator) {
-            try {
-              secondaryAuth.useAuthEmulator('127.0.0.1', 9099);
-            } catch (_) {}
-          }
-          await secondaryAuth.createUserWithEmailAndPassword(
+          await _auth.createUserWithEmailAndPassword(
             email: user.email,
             password: password,
           );
-        } finally {
-          await app.delete();
-        }
-      } catch (e) {
-        if (!e.toString().contains('email-already-in-use')) {
-          rethrow;
+        } catch (mockError) {
+          if (!mockError.toString().contains('email-already-in-use')) {
+            rethrow;
+          }
         }
       }
     }
@@ -114,5 +105,5 @@ final authServiceProvider = Provider<AuthService>((ref) {
   final auth = ref.watch(firebaseAuthProvider);
   final dbService = ref.watch(databaseServiceProvider);
   final config = ref.watch(appConfigProvider);
-  return AuthService(auth, dbService, useEmulator: config.useEmulator);
+  return AuthService(auth, dbService, ref, useEmulator: config.useEmulator);
 });

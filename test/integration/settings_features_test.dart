@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cappla/main.dart';
-import 'package:cappla/models/user_model.dart';
 import 'package:cappla/models/org_unit_model.dart';
 import 'package:cappla/core/providers/providers.dart';
 import 'e2e_test_harness.dart';

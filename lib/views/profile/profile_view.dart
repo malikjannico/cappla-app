@@ -9,7 +9,6 @@ import 'package:uuid/uuid.dart';
 import '../../core/providers/providers.dart';
 import '../../core/router/router_paths.dart';
 import '../../models/org_unit_model.dart';
-import '../../models/user_model.dart';
 
 enum CellEditMode { none, selected, typingFromType, typingFromDouble }
 
@@ -21,6 +20,32 @@ class ProfileView extends ConsumerStatefulWidget {
 }
 
 class _ProfileViewState extends ConsumerState<ProfileView> {
+  final Map<String, MenuController> _menuControllersCache = {};
+
+  MenuController _getOrCreateMenuController(String key) {
+    return _menuControllersCache.putIfAbsent(key, () => MenuController());
+  }
+
+  String? _getCharacterFromKey(LogicalKeyboardKey key, String? character) {
+    if (character != null && character.isNotEmpty) {
+      return character;
+    }
+    if (key == LogicalKeyboardKey.digit0 || key == LogicalKeyboardKey.numpad0) return '0';
+    if (key == LogicalKeyboardKey.digit1 || key == LogicalKeyboardKey.numpad1) return '1';
+    if (key == LogicalKeyboardKey.digit2 || key == LogicalKeyboardKey.numpad2) return '2';
+    if (key == LogicalKeyboardKey.digit3 || key == LogicalKeyboardKey.numpad3) return '3';
+    if (key == LogicalKeyboardKey.digit4 || key == LogicalKeyboardKey.numpad4) return '4';
+    if (key == LogicalKeyboardKey.digit5 || key == LogicalKeyboardKey.numpad5) return '5';
+    if (key == LogicalKeyboardKey.digit6 || key == LogicalKeyboardKey.numpad6) return '6';
+    if (key == LogicalKeyboardKey.digit7 || key == LogicalKeyboardKey.numpad7) return '7';
+    if (key == LogicalKeyboardKey.digit8 || key == LogicalKeyboardKey.numpad8) return '8';
+    if (key == LogicalKeyboardKey.digit9 || key == LogicalKeyboardKey.numpad9) return '9';
+    if (key == LogicalKeyboardKey.period || key == LogicalKeyboardKey.numpadDecimal) return '.';
+    if (key == LogicalKeyboardKey.comma) return ',';
+    if (key == LogicalKeyboardKey.minus || key == LogicalKeyboardKey.numpadSubtract) return '-';
+    return null;
+  }
+
   late TextEditingController _nameController;
   late TextEditingController _titleController;
   OrgUnitModel? _orgUnit;
@@ -209,7 +234,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   }
 
   bool _isCharacterKey(LogicalKeyboardKey key, String? character) {
-    if (character == null || character.isEmpty) return false;
+    final char = _getCharacterFromKey(key, character);
+    if (char == null || char.isEmpty) return false;
     if (key == LogicalKeyboardKey.enter ||
         key == LogicalKeyboardKey.escape ||
         key == LogicalKeyboardKey.tab ||
@@ -218,7 +244,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       return false;
     }
     final RegExp numRegExp = RegExp(r'^[0-9\.\,\-]$');
-    return numRegExp.hasMatch(character);
+    return numRegExp.hasMatch(char);
   }
 
   void _navigateSelection(LogicalKeyboardKey key) {
@@ -448,7 +474,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       for (int c = _selectedRange!.minCol; c <= _selectedRange!.maxCol; c++) {
         if (c == 0) {
           rowValues.add(
-            cap.type == 'Standard'
+            cap.type == CapacityType.standard
                 ? 'Standard'
                 : _formatTimePeriod(cap.startDate, cap.endDate),
           );
@@ -642,7 +668,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
   Future<bool> _saveCapacityEdits(String userEmail) async {
     final specificRows = _editableCapacities
-        .where((c) => c.type == 'Specific')
+        .where((c) => c.type == CapacityType.specific)
         .toList();
     for (int i = 0; i < specificRows.length; i++) {
       final s1 = specificRows[i].startDate;
@@ -860,49 +886,26 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
                     bool hasOverlap = false;
 
-                    if (isEditingRow) {
-                      for (
-                        int idx = 0;
-                        idx < _editableCapacities.length;
-                        idx++
-                      ) {
-                        final other = _editableCapacities[idx];
-                        if (other.id == initialCap!.id) continue;
-                        if (other.type != 'Specific') continue;
-                        final s2 = DateTime(
-                          other.startDate!.year,
-                          other.startDate!.month,
-                          other.startDate!.day,
-                        );
-                        final e2 = DateTime(
-                          other.endDate!.year,
-                          other.endDate!.month,
-                          other.endDate!.day,
-                        );
-                        if (!s1.isAfter(e2) && !s2.isAfter(e1)) {
-                          hasOverlap = true;
-                          break;
-                        }
-                      }
-                    } else {
-                      final db = ref.read(databaseServiceProvider);
-                      final existing = await db.getUserCapacities(userEmail);
-                      for (final other in existing) {
-                        if (other.type != 'Specific') continue;
-                        final s2 = DateTime(
-                          other.startDate!.year,
-                          other.startDate!.month,
-                          other.startDate!.day,
-                        );
-                        final e2 = DateTime(
-                          other.endDate!.year,
-                          other.endDate!.month,
-                          other.endDate!.day,
-                        );
-                        if (!s1.isAfter(e2) && !s2.isAfter(e1)) {
-                          hasOverlap = true;
-                          break;
-                        }
+                    final checkList = _isCapacityEditing
+                        ? _editableCapacities
+                        : (ref.read(userCapacitiesStreamProvider(userEmail)).value ?? []);
+
+                    for (final other in checkList) {
+                      if (initialCap != null && other.id == initialCap.id) continue;
+                      if (other.type != CapacityType.specific) continue;
+                      final s2 = DateTime(
+                        other.startDate!.year,
+                        other.startDate!.month,
+                        other.startDate!.day,
+                      );
+                      final e2 = DateTime(
+                        other.endDate!.year,
+                        other.endDate!.month,
+                        other.endDate!.day,
+                      );
+                      if (!s1.isAfter(e2) && !s2.isAfter(e1)) {
+                        hasOverlap = true;
+                        break;
                       }
                     }
 
@@ -1031,11 +1034,11 @@ final Widget cellChild = Text(
   textAlign: TextAlign.start,
   style: TextStyle(
     color: theme.colorScheme.primary,
-    fontWeight: cap.type == 'Standard' ? FontWeight.bold : FontWeight.normal,
+    fontWeight: cap.type == CapacityType.standard ? FontWeight.bold : FontWeight.normal,
   ),
 );
 
-    final controller = MenuController();
+    final MenuController controller = _getOrCreateMenuController('${cap.id}_period');
 
     final menuItems = [
       MenuItemButton(
@@ -1296,10 +1299,14 @@ final cellStyle = theme.textTheme.bodyMedium?.copyWith(
             focusNode: focusNode,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             textAlign: TextAlign.center,
+            textAlignVertical: TextAlignVertical.center,
+            expands: true,
+            maxLines: null,
+            minLines: null,
             style: cellStyle,
             decoration: const InputDecoration(
               border: InputBorder.none,
-              isCollapsed: true,
+              isDense: true,
               contentPadding: EdgeInsets.zero,
             ),
             onTap: () {
@@ -1362,87 +1369,65 @@ final cellStyle = theme.textTheme.bodyMedium?.copyWith(
             child: Listener(
               behavior: HitTestBehavior.opaque,
               onPointerDown: (event) {
-                _isDraggingFill = true;
-                _dragFillStart = _CellPosition(r, c);
-                _dragFillRange = _CellRange(_dragFillStart!, _dragFillStart!);
+                setState(() {
+                  _isDraggingFill = true;
+                  _dragFillStart = _CellPosition(r, c);
+                  _dragFillRange = _CellRange(_dragFillStart!, _dragFillStart!);
+                });
               },
-              onPointerUp: (event) {
-                if (_isDraggingFill && _dragFillRange != null && _dragFillRange!.start == _dragFillRange!.end) {
-                  setState(() {
-                    _isDraggingFill = false;
-                    _dragFillRange = null;
-                    _dragFillStart = null;
-                  });
+              onPointerMove: (event) {
+                if (_isDraggingFill && _dragFillStart != null) {
+                  final currentCell = _getCellAtGlobalPosition(event.position);
+                  if (currentCell != null) {
+                    setState(() {
+                      final rowDiff = (currentCell.row - _dragFillStart!.row).abs();
+                      final colDiff = (currentCell.col - _dragFillStart!.col).abs();
+                      if (rowDiff >= colDiff) {
+                        _dragFillRange = _CellRange(
+                          _dragFillStart!,
+                          _CellPosition(currentCell.row, _dragFillStart!.col),
+                        );
+                      } else {
+                        _dragFillRange = _CellRange(
+                          _dragFillStart!,
+                          _CellPosition(_dragFillStart!.row, currentCell.col),
+                        );
+                      }
+                    });
+                  }
                 }
               },
-              child: GestureDetector(
-                key: const Key('drag_fill_handle'),
-                behavior: HitTestBehavior.opaque,
-                onPanStart: (details) {
-                  setState(() {
-                    _isDraggingFill = true;
-                    _dragFillStart = _CellPosition(r, c);
-                    _dragFillRange = _CellRange(
-                      _dragFillStart!,
-                      _dragFillStart!,
-                    );
-                  });
-                },
-                onPanUpdate: (details) {
-                  if (_isDraggingFill && _dragFillStart != null) {
-                    final currentCell = _getCellAtGlobalPosition(
-                      details.globalPosition,
-                    );
-                    if (currentCell != null) {
-                      setState(() {
-                        final rowDiff = (currentCell.row - _dragFillStart!.row)
-                            .abs();
-                        final colDiff = (currentCell.col - _dragFillStart!.col)
-                            .abs();
-                        if (rowDiff >= colDiff) {
-                          _dragFillRange = _CellRange(
-                            _dragFillStart!,
-                            _CellPosition(currentCell.row, _dragFillStart!.col),
-                          );
-                        } else {
-                          _dragFillRange = _CellRange(
-                            _dragFillStart!,
-                            _CellPosition(_dragFillStart!.row, currentCell.col),
-                          );
-                        }
-                      });
-                    }
-                  }
-                },
-                onPanEnd: (details) {
+              onPointerUp: (event) {
+                if (_isDraggingFill) {
                   setState(() {
                     _performDragFill();
                     _isDraggingFill = false;
                     _dragFillRange = null;
                     _dragFillStart = null;
                   });
-                },
-                onPanCancel: () {
-                  setState(() {
-                    _isDraggingFill = false;
-                    _dragFillRange = null;
-                    _dragFillStart = null;
-                  });
-                },
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.precise,
-                  child: SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: Align(
-                      alignment: Alignment.bottomRight,
-                      child: Container(
-                        width: 7,
-                        height: 7,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary,
-                          border: Border.all(color: Colors.white, width: 1),
-                        ),
+                }
+              },
+              onPointerCancel: (event) {
+                setState(() {
+                  _isDraggingFill = false;
+                  _dragFillRange = null;
+                  _dragFillStart = null;
+                });
+              },
+              child: MouseRegion(
+                key: const Key('drag_fill_handle'),
+                cursor: SystemMouseCursors.precise,
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary,
+                        border: Border.all(color: Colors.white, width: 1),
                       ),
                     ),
                   ),
@@ -1454,7 +1439,8 @@ final cellStyle = theme.textTheme.bodyMedium?.copyWith(
       );
     }
 
-    final controller = MenuController();
+    final menuKey = '${cap.id}_$dayName';
+    final MenuController controller = _getOrCreateMenuController(menuKey);
     final isRightHalf = c >= 4;
 
     final menuItems = [
@@ -1644,7 +1630,7 @@ if (isSelected) {
   cellDeco = const BoxDecoration(color: Colors.white);
 }
 
-    final controller = MenuController();
+    final controller = _getOrCreateMenuController('header_$c');
     final isRightHalf = c >= 4;
 
     final menuItems = [
@@ -1794,7 +1780,7 @@ final Widget sumChild = Center(
   ),
 );
 
-    final controller = MenuController();
+    final controller = _getOrCreateMenuController('${cap.id}_sum');
 
     final menuItems = [
       MenuItemButton(
@@ -1940,6 +1926,9 @@ final Widget sumChild = Center(
           }
         },
         child: SingleChildScrollView(
+          physics: _isDraggingFill || _isDraggingSelection
+              ? const NeverScrollableScrollPhysics()
+              : const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
           child: Align(
             alignment: Alignment.topLeft,
@@ -1995,8 +1984,7 @@ final Widget sumChild = Center(
                                   await ref
                                       .read(databaseServiceProvider)
                                       .saveUser(updatedUser);
-                                  ref.read(currentUserProvider.notifier).state =
-                                      updatedUser;
+                                  ref.read(currentUserProvider.notifier).update(updatedUser);
                                 }
                                 if (context.mounted) {
                                   context.go(RouterPaths.profile);
@@ -2206,8 +2194,8 @@ final Widget sumChild = Center(
                                           currentCapacities,
                                         );
                                     sortedList.sort((a, b) {
-                                      if (a.type == 'Standard') return -1;
-                                      if (b.type == 'Standard') return 1;
+                                      if (a.type == CapacityType.standard) return -1;
+                                      if (b.type == CapacityType.standard) return 1;
                                       return (a.startDate ?? DateTime.now())
                                           .compareTo(
                                             b.startDate ?? DateTime.now(),
@@ -2249,8 +2237,8 @@ final Widget sumChild = Center(
                                         currentCapacities,
                                       );
                                   sortedList.sort((a, b) {
-                                    if (a.type == 'Standard') return -1;
-                                    if (b.type == 'Standard') return 1;
+                                    if (a.type == CapacityType.standard) return -1;
+                                    if (b.type == CapacityType.standard) return 1;
                                     return (a.startDate ?? DateTime.now())
                                         .compareTo(
                                           b.startDate ?? DateTime.now(),
@@ -2324,14 +2312,14 @@ final Widget sumChild = Center(
 
                           final sortedSource = List<UserCapacityModel>.from(allSource);
                           sortedSource.sort((a, b) {
-                            if (a.type == 'Standard') return -1;
-                            if (b.type == 'Standard') return 1;
+                            if (a.type == CapacityType.standard) return -1;
+                            if (b.type == CapacityType.standard) return 1;
                             return (a.startDate ?? DateTime.now())
                                 .compareTo(b.startDate ?? DateTime.now());
                           });
 
-                          final standardCaps = sortedSource.where((c) => c.type == 'Standard').toList();
-                          final specificCaps = sortedSource.where((c) => c.type != 'Standard').toList();
+                          final standardCaps = sortedSource.where((c) => c.type == CapacityType.standard).toList();
+                          final specificCaps = sortedSource.where((c) => c.type != CapacityType.standard).toList();
 
                           // Dynamic years collection ONLY from custom capacities:
                           final yearsSet = <int>{};
@@ -2586,19 +2574,19 @@ final Widget sumChild = Center(
                                             }
                                           }
 
-                                          // 2. Typing to Enter Typing Mode (when in selected mode and editing is enabled)
+                                           // 2. Typing to Enter Typing Mode (when in selected mode and editing is enabled)
                                           if (_isCapacityEditing &&
                                               _cellEditMode ==
                                                   CellEditMode.selected) {
-                                            final character = event.character;
-                                            if (_isCharacterKey(
+                                            final character = _getCharacterFromKey(key, event.character);
+                                            if (character != null && _isCharacterKey(
                                               key,
                                               character,
                                             )) {
                                               _startTypingFromType(
                                                 _selectedRange!.start.row,
                                                 _selectedRange!.start.col,
-                                                character!,
+                                                character,
                                               );
                                               return KeyEventResult.handled;
                                             } else if (key ==
@@ -2941,7 +2929,7 @@ final Widget sumChild = Center(
                                                       child:
                                                           _isCapacityEditing &&
                                                               cap.type ==
-                                                                  'Specific'
+                                                                  CapacityType.specific
                                                           ? Listener(
                                                               onPointerDown: (_) =>
                                                                   _tappedInteractive =

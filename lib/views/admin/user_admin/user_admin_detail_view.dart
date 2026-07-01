@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/router/router_paths.dart';
-import '../../../models/user_model.dart';
 import '../../../models/org_unit_model.dart';
 import '../../../core/theme/theme_extensions.dart';
 
@@ -293,16 +292,9 @@ class _UserAdminDetailViewState extends ConsumerState<UserAdminDetailView> {
                                             ref
                                                 .read(currentUserProvider)
                                                 ?.email) {
-                                          final updated = await ref
+                                          await ref
                                               .read(databaseServiceProvider)
                                               .getUser(user.email);
-                                          ref
-                                                  .read(
-                                                    currentUserProvider
-                                                        .notifier,
-                                                  )
-                                                  .state =
-                                              updated;
                                         }
                                       },
                                       child: Text(
@@ -317,9 +309,12 @@ class _UserAdminDetailViewState extends ConsumerState<UserAdminDetailView> {
                                     child: MenuItemButton(
                                       onPressed: () async {
                                         final db = ref.read(databaseServiceProvider);
-                                        if (!db.toString().contains('Mock')) {
+                                        final firestore = ref.read(firestoreProvider);
+                                        if (!db.toString().contains('Mock') &&
+                                            !firestore.toString().contains('Mock') &&
+                                            !firestore.toString().contains('Fake')) {
                                           final baseUrl = Uri.base.origin;
-                                          await FirebaseFirestore.instance
+                                          await firestore
                                               .collection('adminPasswordResetRequests')
                                               .doc(user.email.trim().toLowerCase())
                                               .set({
@@ -384,15 +379,6 @@ class _UserAdminDetailViewState extends ConsumerState<UserAdminDetailView> {
                                 await ref
                                     .read(databaseServiceProvider)
                                     .saveUser(updated);
-
-                                final currentUser = ref.read(
-                                  currentUserProvider,
-                                );
-                                if (currentUser != null &&
-                                    currentUser.email == updated.email) {
-                                  ref.read(currentUserProvider.notifier).state =
-                                      updated;
-                                }
 
                                 if (context.mounted) {
                                   context.go(
@@ -803,22 +789,8 @@ class _BreadcrumbLinkState extends State<BreadcrumbLink> {
   }
 }
 
-Widget _buildStatusChip(String status, ThemeData theme, BuildContext context) {
-  // Convenient extension getter context.colors is available from theme_extensions.dart
-  // Wait, let's verify if theme_extensions.dart is imported. Yes, user_admin_detail_view imports:
-  // but wait, does user_admin_detail_view import theme_extensions.dart?
-  // Let's check imports of user_admin_detail_view.dart!
-  // It imports:
-  // import '../../../core/providers/providers.dart';
-  // import '../../../core/router/router_paths.dart';
-  // import '../../../models/user_model.dart';
-  // import '../../../models/org_unit_model.dart';
-  // It DOES NOT import theme_extensions.dart! We must import it!
-  // Let's add the import or use the color directly or import theme_extensions.dart!
-  // Wait, let's add `import '../../../core/theme/theme_extensions.dart';` at the top of the file.
-  // Actually, we can add it here or import it at the top.
-  // Let's import it at the top of user_admin_detail_view.dart.
-  final isActive = status == 'Active';
+Widget _buildStatusChip(dynamic status, ThemeData theme, BuildContext context) {
+  final isActive = status == 'Active' || status.toString() == 'Active';
   final colors = context.colors;
 
   final bgColor = isActive

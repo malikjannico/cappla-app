@@ -1,11 +1,12 @@
+
 class UserModel {
   final String id;
   final String fullName;
   final String email;
   final String title;
   final String? orgUnitId;
-  final String status; // "Active" | "Inactive"
-  final String role; // "User" | "Administrator"
+  final String status;
+  final String role;
   final String createdBy;
   final DateTime createdAt;
   final String lastModifiedBy;
@@ -17,14 +18,16 @@ class UserModel {
     required String email,
     required this.title,
     this.orgUnitId,
-    required this.status,
-    required this.role,
+    required String status,
+    required String role,
     String? createdBy,
     DateTime? createdAt,
     String? lastModifiedBy,
     DateTime? lastModifiedAt,
   }) : id = id.trim().toLowerCase(),
        email = email.trim().toLowerCase(),
+       status = (status.trim().toLowerCase() == 'inactive') ? 'Inactive' : 'Active',
+       role = (role.trim().toLowerCase() == 'administrator') ? 'Administrator' : 'User',
        createdBy = createdBy ?? 'system',
        createdAt = createdAt ?? DateTime.fromMillisecondsSinceEpoch(0),
        lastModifiedBy = lastModifiedBy ?? 'system',
@@ -87,13 +90,13 @@ class UserModel {
     }
 
     return UserModel(
-      id: map['id'],
-      fullName: map['fullName'],
-      email: map['email'],
-      title: map['title'],
+      id: map['id'] ?? '',
+      fullName: map['fullName'] ?? '',
+      email: map['email'] ?? '',
+      title: map['title'] ?? '',
       orgUnitId: map['orgUnitId'],
-      status: map['status'],
-      role: map['role'],
+      status: map['status'] ?? 'Active',
+      role: map['role'] ?? 'User',
       createdBy: map['createdBy'],
       createdAt: parseDate(map['createdAt']),
       lastModifiedBy: map['lastModifiedBy'],

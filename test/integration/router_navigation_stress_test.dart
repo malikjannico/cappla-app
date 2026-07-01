@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cappla/main.dart';
-import 'package:cappla/models/user_model.dart';
 import 'package:cappla/models/org_unit_model.dart';
 import 'package:cappla/core/providers/providers.dart';
 import 'package:cappla/core/router/router.dart';
@@ -113,10 +112,6 @@ void main() {
           inactiveUser.toMap(),
         );
 
-        // Update Riverpod state provider directly to simulate dynamic Firestore watch trigger
-        harness.container.read(currentUserProvider.notifier).state =
-            inactiveUser;
-
         // Pump to trigger stream updates and route guard check
         await tester.pumpAndSettle();
 
@@ -171,9 +166,6 @@ void main() {
 
         // Delete user document from firestore
         harness.removeUser('john.doe@vetter-pharma.com');
-
-        // Update Riverpod state provider directly to null to simulate deletion Firestore watch trigger
-        harness.container.read(currentUserProvider.notifier).state = null;
 
         // Pump to allow stream updates to propagate and trigger redirection
         await tester.pumpAndSettle();

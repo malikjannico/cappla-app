@@ -5,7 +5,7 @@ import '../../../core/providers/providers.dart';
 import '../../../core/router/router_paths.dart';
 import '../../../core/theme/theme_extensions.dart';
 import '../../../models/org_unit_model.dart';
-import '../../admin/org_admin/org_admin_view.dart' show PageIndicatorInput;
+import '../../admin/org_admin/org_admin_list_view.dart' show PageIndicatorInput;
 import 'change_ownership_dialog.dart';
 
 class CategoriesListView extends ConsumerStatefulWidget {
@@ -303,6 +303,7 @@ class _CategoriesListViewState extends ConsumerState<CategoriesListView> {
                   itemCount: displayedCategories.length,
                   itemBuilder: (context, idx) {
                     final cat = displayedCategories[idx];
+                    debugPrint('categories_list_view: cat.name=${cat.name} cat.ownerOrgUnitId=${cat.ownerOrgUnitId} myOrg.id=${myOrg.id} isOwner=${cat.ownerOrgUnitId == myOrg.id} headOfEmail=${myOrg.headOfEmail}');
                     final catStatus = cat.statusMap[myOrg.id] ?? 'Active';
                     final isOwner = cat.ownerOrgUnitId == myOrg.id;
 

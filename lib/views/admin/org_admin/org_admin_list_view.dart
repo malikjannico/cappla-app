@@ -4,18 +4,17 @@ import 'package:go_router/go_router.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/router/router_paths.dart';
 import '../../../core/theme/theme_extensions.dart';
-import '../../../models/user_model.dart';
 import '../user_admin/user_admin_list_view.dart';
-import 'org_detail_view.dart';
+import 'org_admin_detail_view.dart';
 
-class OrgAdminView extends ConsumerStatefulWidget {
-  const OrgAdminView({super.key});
+class OrgAdminListView extends ConsumerStatefulWidget {
+  const OrgAdminListView({super.key});
 
   @override
-  ConsumerState<OrgAdminView> createState() => _OrgAdminViewState();
+  ConsumerState<OrgAdminListView> createState() => _OrgAdminListViewState();
 }
 
-class _OrgAdminViewState extends ConsumerState<OrgAdminView> {
+class _OrgAdminListViewState extends ConsumerState<OrgAdminListView> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
   int _currentPage = 1;
@@ -637,8 +636,8 @@ class _PageIndicatorInputState extends State<PageIndicatorInput> {
   }
 }
 
-Widget _buildStatusChip(String status, ThemeData theme, BuildContext context) {
-  final isActive = status == 'Active';
+Widget _buildStatusChip(dynamic status, ThemeData theme, BuildContext context) {
+  final isActive = status.toString() == 'Active';
   final colors = context.colors;
 
   final bgColor = isActive

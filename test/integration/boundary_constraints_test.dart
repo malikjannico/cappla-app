@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cappla/core/router/router_paths.dart';
 import 'package:cappla/core/router/router_guards.dart';
+import 'package:cappla/core/router/router.dart';
 import 'e2e_test_harness.dart';
-import 'mock_views.dart';
-import 'package:cappla/models/user_model.dart';
+import 'package:cappla/main.dart';
 import 'package:cappla/models/org_unit_model.dart';
 import 'package:cappla/core/providers/providers.dart';
 
@@ -41,7 +41,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -102,7 +102,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -157,7 +157,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -212,7 +212,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -275,7 +275,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -399,7 +399,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -442,8 +442,7 @@ void main() {
           downgradedUser.toMap(),
         );
         // Update local state to reflect mid-session Firestore change
-        harness.container.read(currentUserProvider.notifier).state =
-            downgradedUser;
+        harness.container.read(currentUserProvider.notifier).update(downgradedUser);
         await tester.pumpAndSettle();
 
         // Verify Administration tab collection is no longer accessible or displayed (dropdown is hidden)
@@ -689,7 +688,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -734,7 +733,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -802,7 +801,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -892,7 +891,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -954,7 +953,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -1032,7 +1031,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -1125,7 +1124,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -1149,14 +1148,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Go to UNIT_B details
-        harness.container.read(selectedOrgForDetailsProvider.notifier).state =
-            orgB;
-        harness.container.read(currentViewProvider.notifier).state =
-            'org_detail';
-        harness.container
-                .read(showDetailedOrgChildInputProvider.notifier)
-                .state =
-            true;
+        harness.container.read(routerProvider).go('/admin/orgs/${orgB.id}');
         await tester.pumpAndSettle();
 
         // Attempt to add parent UNIT_A as a child of UNIT_B (making B the parent of A -> circular) via modal
@@ -1234,7 +1226,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -1258,14 +1250,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Go to UNIT_C details
-        harness.container.read(selectedOrgForDetailsProvider.notifier).state =
-            orgC;
-        harness.container.read(currentViewProvider.notifier).state =
-            'org_detail';
-        harness.container
-                .read(showDetailedOrgChildInputProvider.notifier)
-                .state =
-            true;
+        harness.container.read(routerProvider).go('/admin/orgs/${orgC.id}');
         await tester.pumpAndSettle();
 
         // Attempt to add UNIT_A as child of UNIT_C (making C parent of A -> loop A->B->C->A) via modal
@@ -1332,7 +1317,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -1356,14 +1341,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Go to UNIT_A details
-        harness.container.read(selectedOrgForDetailsProvider.notifier).state =
-            orgA;
-        harness.container.read(currentViewProvider.notifier).state =
-            'org_detail';
-        harness.container
-                .read(showDetailedOrgChildInputProvider.notifier)
-                .state =
-            true;
+        harness.container.read(routerProvider).go('/admin/orgs/${orgA.id}');
         await tester.pumpAndSettle();
 
         // Attempt to add B (md division) as a child of A via modal
@@ -1413,7 +1391,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -1437,14 +1415,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Go to TEAM_UNIT details
-        harness.container.read(selectedOrgForDetailsProvider.notifier).state =
-            teamUnit;
-        harness.container.read(currentViewProvider.notifier).state =
-            'org_detail';
-        harness.container
-                .read(showDetailedOrgChildInputProvider.notifier)
-                .state =
-            true;
+        harness.container.read(routerProvider).go('/admin/orgs/${teamUnit.id}');
         await tester.pumpAndSettle();
 
         // Verify that Child Units section and Add Child button are not rendered for team type
@@ -1504,7 +1475,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -1528,14 +1499,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Go to UNIT_B details
-        harness.container.read(selectedOrgForDetailsProvider.notifier).state =
-            orgB;
-        harness.container.read(currentViewProvider.notifier).state =
-            'org_detail';
-        harness.container
-                .read(showDetailedOrgChildInputProvider.notifier)
-                .state =
-            true;
+        harness.container.read(routerProvider).go('/admin/orgs/${orgB.id}');
         await tester.pumpAndSettle();
 
         // Attempt to add UNIT_C as child of UNIT_B via modal
@@ -1603,7 +1567,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -1689,7 +1653,7 @@ void main() {
         await tester.pumpWidget(
           UncontrolledProviderScope(
             container: harness.container,
-            child: const MaterialApp(home: MockAppRoot()),
+            child: const CapplaApp(),
           ),
         );
 
@@ -1713,10 +1677,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Go to parent details
-        harness.container.read(selectedOrgForDetailsProvider.notifier).state =
-            parentOrg;
-        harness.container.read(currentViewProvider.notifier).state =
-            'org_detail';
+        harness.container.read(routerProvider).go('/admin/orgs/${parentOrg.id}');
         await tester.pumpAndSettle();
 
         // Remove association

@@ -2,11 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cappla/models/user_model.dart';
 import 'package:cappla/models/org_unit_model.dart';
 import 'package:cappla/core/providers/providers.dart';
+import 'package:cappla/core/router/router.dart';
 import 'e2e_test_harness.dart';
-import 'mock_views.dart';
+import 'package:cappla/main.dart';
 
 void main() {
   group('E2E Tier 3: Combination & Cross-Feature Tests', () {
@@ -49,7 +49,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: harness.container,
-          child: const MaterialApp(home: MockAppRoot()),
+          child: const CapplaApp(),
         ),
       );
 
@@ -67,10 +67,8 @@ void main() {
       await tester.tap(find.byKey(const Key('login_submit_button')));
       await tester.pumpAndSettle();
 
-      // Switch tab to administration, route to orgs
-      harness.container.read(selectedTabCollectionProvider.notifier).state =
-          'Administration';
       harness.container.read(currentAdminRouteProvider.notifier).state = 'orgs';
+      harness.container.read(routerProvider).go('/admin/orgs');
       await tester.pumpAndSettle();
 
       // Verify parent status is Active
@@ -142,7 +140,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: harness.container,
-          child: const MaterialApp(home: MockAppRoot()),
+          child: const CapplaApp(),
         ),
       );
 
@@ -212,7 +210,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: harness.container,
-          child: const MaterialApp(home: MockAppRoot()),
+          child: const CapplaApp(),
         ),
       );
 
@@ -248,7 +246,6 @@ void main() {
         upgradedUser.email,
         upgradedUser.toMap(),
       );
-      harness.container.read(currentUserProvider.notifier).state = upgradedUser;
       await tester.pumpAndSettle();
 
       // Check tab collection dropdown now has the "Administration" option
@@ -295,7 +292,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: harness.container,
-          child: const MaterialApp(home: MockAppRoot()),
+          child: const CapplaApp(),
         ),
       );
 
@@ -313,10 +310,8 @@ void main() {
       await tester.tap(find.byKey(const Key('login_submit_button')));
       await tester.pumpAndSettle();
 
-      // Switch tab to administration, route to orgs
-      harness.container.read(selectedTabCollectionProvider.notifier).state =
-          'Administration';
       harness.container.read(currentAdminRouteProvider.notifier).state = 'orgs';
+      harness.container.read(routerProvider).go('/admin/orgs');
       await tester.pumpAndSettle();
 
       // Root list should contain PARENT_DIV and CHILD_DIV
@@ -402,7 +397,7 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: harness.container,
-          child: const MaterialApp(home: MockAppRoot()),
+          child: const CapplaApp(),
         ),
       );
 
@@ -421,12 +416,8 @@ void main() {
       await tester.pumpAndSettle();
 
       for (int i = 0; i < types.length; i++) {
-        // Switch tab to administration, route to orgs
-        harness.container.read(selectedTabCollectionProvider.notifier).state =
-            'Administration';
-        harness.container.read(currentAdminRouteProvider.notifier).state =
-            'orgs';
-        harness.container.read(currentViewProvider.notifier).state = 'shell';
+        harness.container.read(currentAdminRouteProvider.notifier).state = 'orgs';
+        harness.container.read(routerProvider).go('/admin/orgs');
         await tester.pumpAndSettle();
 
         // Go to Org details

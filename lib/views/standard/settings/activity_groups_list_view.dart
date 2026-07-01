@@ -5,7 +5,7 @@ import '../../../core/providers/providers.dart';
 import '../../../core/router/router_paths.dart';
 import '../../../core/theme/theme_extensions.dart';
 import '../../../models/org_unit_model.dart';
-import '../../admin/org_admin/org_admin_view.dart' show PageIndicatorInput;
+import '../../admin/org_admin/org_admin_list_view.dart' show PageIndicatorInput;
 import 'categories_list_view.dart' show ShareWizardModal, ApplyModal;
 import 'change_ownership_dialog.dart';
 

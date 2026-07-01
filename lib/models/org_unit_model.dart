@@ -1,13 +1,14 @@
+import 'enums.dart';
+
 class OrgUnitModel {
   final String id;
   final String name;
   final String abbreviation;
   final String headOfEmail;
-  final String
-  type; // "md division", "svp division", "vp division", "department", "group", "team"
+  final OrgUnitType type;
   final String? parentId;
   final List<String> childIds;
-  final String status; // "Active" | "Inactive"
+  final String status;
   final String createdBy;
   final DateTime createdAt;
   final String lastModifiedBy;
@@ -18,7 +19,7 @@ class OrgUnitModel {
     required this.name,
     required this.abbreviation,
     required this.headOfEmail,
-    required this.type,
+    required dynamic type,
     this.parentId,
     required this.childIds,
     required this.status,
@@ -26,7 +27,8 @@ class OrgUnitModel {
     DateTime? createdAt,
     String? lastModifiedBy,
     DateTime? lastModifiedAt,
-  }) : createdBy = createdBy ?? 'system',
+  }) : type = type is OrgUnitType ? type : OrgUnitType.fromString(type.toString()),
+       createdBy = createdBy ?? 'system',
        createdAt = createdAt ?? DateTime.now(),
        lastModifiedBy = lastModifiedBy ?? 'system',
        lastModifiedAt = lastModifiedAt ?? DateTime.now();
@@ -36,7 +38,7 @@ class OrgUnitModel {
     String? name,
     String? abbreviation,
     String? headOfEmail,
-    String? type,
+    dynamic type,
     String? Function()? parentId,
     List<String>? childIds,
     String? status,
@@ -64,7 +66,7 @@ class OrgUnitModel {
     'name': name,
     'abbreviation': abbreviation,
     'headOfEmail': headOfEmail,
-    'type': type,
+    'type': type.value,
     'parentId': parentId,
     'childIds': childIds,
     'status': status,
@@ -90,14 +92,14 @@ class OrgUnitModel {
     }
 
     return OrgUnitModel(
-      id: map['id'],
-      name: map['name'],
-      abbreviation: map['abbreviation'],
-      headOfEmail: map['headOfEmail'],
-      type: map['type'],
+      id: map['id'] ?? '',
+      name: map['name'] ?? '',
+      abbreviation: map['abbreviation'] ?? '',
+      headOfEmail: map['headOfEmail'] ?? '',
+      type: OrgUnitType.fromString(map['type'] ?? 'team'),
       parentId: map['parentId'],
       childIds: List<String>.from(map['childIds'] ?? []),
-      status: map['status'],
+      status: map['status'] ?? 'Active',
       createdBy: map['createdBy'],
       createdAt: parseDate(map['createdAt']),
       lastModifiedBy: map['lastModifiedBy'],

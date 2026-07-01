@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/router/router_paths.dart';
 import '../../../core/theme/theme_extensions.dart';
-import '../../../models/user_model.dart';
 import '../../../models/org_unit_model.dart';
 
 final usersStreamProvider = StreamProvider.autoDispose<List<UserModel>>((ref) {
@@ -602,18 +601,11 @@ class _UserAdminListViewState extends ConsumerState<UserAdminListView> {
                                                   ref
                                                       .read(currentUserProvider)
                                                       ?.email) {
-                                                final updated = await ref
+                                                await ref
                                                     .read(
                                                       databaseServiceProvider,
                                                     )
                                                     .getUser(user.email);
-                                                ref
-                                                        .read(
-                                                          currentUserProvider
-                                                              .notifier,
-                                                        )
-                                                        .state =
-                                                    updated;
                                               }
                                             },
                                             child: Text(
@@ -631,9 +623,12 @@ class _UserAdminListViewState extends ConsumerState<UserAdminListView> {
                                             ),
                                             onPressed: () async {
                                               final db = ref.read(databaseServiceProvider);
-                                              if (!db.toString().contains('Mock')) {
+                                              final firestore = ref.read(firestoreProvider);
+                                              if (!db.toString().contains('Mock') &&
+                                                  !firestore.toString().contains('Mock') &&
+                                                  !firestore.toString().contains('Fake')) {
                                                 final baseUrl = Uri.base.origin;
-                                                await FirebaseFirestore.instance
+                                                await firestore
                                                     .collection('adminPasswordResetRequests')
                                                     .doc(user.email.trim().toLowerCase())
                                                     .set({
@@ -682,11 +677,11 @@ class _UserAdminListViewState extends ConsumerState<UserAdminListView> {
   }
 
   Widget _buildStatusChip(
-    String status,
+    dynamic status,
     ThemeData theme,
     BuildContext context,
   ) {
-    final isActive = status == 'Active';
+    final isActive = status == 'Active' || status.toString() == 'Active';
     final colors = context.colors;
 
     final bgColor = isActive

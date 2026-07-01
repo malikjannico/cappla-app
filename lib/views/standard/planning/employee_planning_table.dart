@@ -5,7 +5,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
-import '../../../models/user_model.dart';
 import '../../../core/utils/capacity_calculator.dart';
 import '../../../core/utils/csv_export_helper.dart';
 import '../../../core/theme/theme_extensions.dart';
@@ -93,6 +92,32 @@ class EmployeePlanningTable extends ConsumerStatefulWidget {
 }
 
 class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
+  final Map<String, MenuController> _menuControllersCache = {};
+
+  MenuController _getOrCreateMenuController(String key) {
+    return _menuControllersCache.putIfAbsent(key, () => MenuController());
+  }
+
+  String? _getCharacterFromKey(LogicalKeyboardKey key, String? character) {
+    if (character != null && character.isNotEmpty) {
+      return character;
+    }
+    if (key == LogicalKeyboardKey.digit0 || key == LogicalKeyboardKey.numpad0) return '0';
+    if (key == LogicalKeyboardKey.digit1 || key == LogicalKeyboardKey.numpad1) return '1';
+    if (key == LogicalKeyboardKey.digit2 || key == LogicalKeyboardKey.numpad2) return '2';
+    if (key == LogicalKeyboardKey.digit3 || key == LogicalKeyboardKey.numpad3) return '3';
+    if (key == LogicalKeyboardKey.digit4 || key == LogicalKeyboardKey.numpad4) return '4';
+    if (key == LogicalKeyboardKey.digit5 || key == LogicalKeyboardKey.numpad5) return '5';
+    if (key == LogicalKeyboardKey.digit6 || key == LogicalKeyboardKey.numpad6) return '6';
+    if (key == LogicalKeyboardKey.digit7 || key == LogicalKeyboardKey.numpad7) return '7';
+    if (key == LogicalKeyboardKey.digit8 || key == LogicalKeyboardKey.numpad8) return '8';
+    if (key == LogicalKeyboardKey.digit9 || key == LogicalKeyboardKey.numpad9) return '9';
+    if (key == LogicalKeyboardKey.period || key == LogicalKeyboardKey.numpadDecimal) return '.';
+    if (key == LogicalKeyboardKey.comma) return ',';
+    if (key == LogicalKeyboardKey.minus || key == LogicalKeyboardKey.numpadSubtract) return '-';
+    return null;
+  }
+
   CellRange? _selectedRange;
   CellPosition? _selectionStart;
   bool _isDraggingSelection = false;
@@ -210,7 +235,8 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
   }
 
   bool _isCharacterKey(LogicalKeyboardKey key, String? character) {
-    if (character == null || character.isEmpty) return false;
+    final char = _getCharacterFromKey(key, character);
+    if (char == null || char.isEmpty) return false;
     if (key == LogicalKeyboardKey.enter ||
         key == LogicalKeyboardKey.escape ||
         key == LogicalKeyboardKey.tab ||
@@ -219,7 +245,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
       return false;
     }
     final RegExp numRegExp = RegExp(r'^[0-9\.\,\-]$');
-    return numRegExp.hasMatch(character);
+    return numRegExp.hasMatch(char);
   }
 
   void _navigateSelection(LogicalKeyboardKey key) {
@@ -1579,12 +1605,12 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                 // 2. Typing to Enter Typing Mode (when in selected mode and editing is enabled)
                 if (widget.isEditing &&
                     _cellEditMode == CellEditMode.selected) {
-                  final character = event.character;
-                  if (_isCharacterKey(key, character)) {
+                  final character = _getCharacterFromKey(key, event.character);
+                  if (character != null && _isCharacterKey(key, character)) {
                     _startTypingFromType(
                       _selectedRange!.start.row,
                       _selectedRange!.start.col,
-                      character!,
+                      character,
                     );
                     return KeyEventResult.handled;
                   } else if (key == LogicalKeyboardKey.backspace ||
@@ -1617,6 +1643,9 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                   ),
                   Expanded(
                     child: SingleChildScrollView(
+                      physics: _isDraggingFill || _isDraggingSelection
+                          ? const NeverScrollableScrollPhysics()
+                          : const ClampingScrollPhysics(),
                       scrollDirection: Axis.horizontal,
                       controller: _headerScrollController,
                       child: Column(
@@ -1645,6 +1674,9 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                     }
                   },
                   child: SingleChildScrollView(
+                    physics: _isDraggingFill || _isDraggingSelection
+                        ? const NeverScrollableScrollPhysics()
+                        : const ClampingScrollPhysics(),
                     controller: _verticalScrollController,
                     scrollDirection: Axis.vertical,
                     child: Row(
@@ -1682,6 +1714,9 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                               }
                             },
                             child: SingleChildScrollView(
+                              physics: _isDraggingFill || _isDraggingSelection
+                                  ? const NeverScrollableScrollPhysics()
+                                  : const ClampingScrollPhysics(),
                               scrollDirection: Axis.horizontal,
                               controller: _middleScrollController,
                               child: Column(
@@ -1716,6 +1751,9 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                   ),
                   Expanded(
                     child: SingleChildScrollView(
+                      physics: _isDraggingFill || _isDraggingSelection
+                          ? const NeverScrollableScrollPhysics()
+                          : const ClampingScrollPhysics(),
                       scrollDirection: Axis.horizontal,
                       controller: _footerScrollController,
                       child: Column(
@@ -2071,87 +2109,65 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
             child: Listener(
               behavior: HitTestBehavior.opaque,
               onPointerDown: (event) {
-                _isDraggingFill = true;
-                _dragFillStart = CellPosition(r, c);
-                _dragFillRange = CellRange(_dragFillStart!, _dragFillStart!);
+                setState(() {
+                  _isDraggingFill = true;
+                  _dragFillStart = CellPosition(r, c);
+                  _dragFillRange = CellRange(_dragFillStart!, _dragFillStart!);
+                });
               },
-              onPointerUp: (event) {
-                if (_isDraggingFill && _dragFillRange != null && _dragFillRange!.start == _dragFillRange!.end) {
-                  setState(() {
-                    _isDraggingFill = false;
-                    _dragFillRange = null;
-                    _dragFillStart = null;
-                  });
+              onPointerMove: (event) {
+                if (_isDraggingFill && _dragFillStart != null) {
+                  final currentCell = _getCellAtGlobalPosition(event.position);
+                  if (currentCell != null) {
+                    setState(() {
+                      final rowDiff = (currentCell.row - _dragFillStart!.row).abs();
+                      final colDiff = (currentCell.col - _dragFillStart!.col).abs();
+                      if (rowDiff >= colDiff) {
+                        _dragFillRange = CellRange(
+                          _dragFillStart!,
+                          CellPosition(currentCell.row, _dragFillStart!.col),
+                        );
+                      } else {
+                        _dragFillRange = CellRange(
+                          _dragFillStart!,
+                          CellPosition(_dragFillStart!.row, currentCell.col),
+                        );
+                      }
+                    });
+                  }
                 }
               },
-              child: GestureDetector(
-                key: Key('employee_drag_fill_handle_${r}_$c'),
-                behavior: HitTestBehavior.opaque,
-                onPanStart: (details) {
-                  setState(() {
-                    _isDraggingFill = true;
-                    _dragFillStart = CellPosition(r, c);
-                    _dragFillRange = CellRange(
-                      _dragFillStart!,
-                      _dragFillStart!,
-                    );
-                  });
-                },
-                onPanUpdate: (details) {
-                  if (_isDraggingFill && _dragFillStart != null) {
-                    final currentCell = _getCellAtGlobalPosition(
-                      details.globalPosition,
-                    );
-                    if (currentCell != null) {
-                      setState(() {
-                        final rowDiff = (currentCell.row - _dragFillStart!.row)
-                            .abs();
-                        final colDiff = (currentCell.col - _dragFillStart!.col)
-                            .abs();
-                        if (rowDiff >= colDiff) {
-                          _dragFillRange = CellRange(
-                            _dragFillStart!,
-                            CellPosition(currentCell.row, _dragFillStart!.col),
-                          );
-                        } else {
-                          _dragFillRange = CellRange(
-                            _dragFillStart!,
-                            CellPosition(_dragFillStart!.row, currentCell.col),
-                          );
-                        }
-                      });
-                    }
-                  }
-                },
-                onPanEnd: (details) {
+              onPointerUp: (event) {
+                if (_isDraggingFill) {
                   setState(() {
                     _performEmployeeDragFill();
                     _isDraggingFill = false;
                     _dragFillRange = null;
                     _dragFillStart = null;
                   });
-                },
-                onPanCancel: () {
-                  setState(() {
-                    _isDraggingFill = false;
-                    _dragFillRange = null;
-                    _dragFillStart = null;
-                  });
-                },
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.precise,
-                  child: SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: Align(
-                      alignment: Alignment.bottomRight,
-                      child: Container(
-                        width: 7,
-                        height: 7,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary,
-                          border: Border.all(color: Colors.white, width: 1),
-                        ),
+                }
+              },
+              onPointerCancel: (event) {
+                setState(() {
+                  _isDraggingFill = false;
+                  _dragFillRange = null;
+                  _dragFillStart = null;
+                });
+              },
+              child: MouseRegion(
+                key: const Key('drag_fill_handle'),
+                cursor: SystemMouseCursors.precise,
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary,
+                        border: Border.all(color: Colors.white, width: 1),
                       ),
                     ),
                   ),
@@ -2163,15 +2179,14 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
       );
     }
 
-    final MenuController? controller = widget.isEditing
-        ? MenuController()
-        : null;
+    final menuKey = '${rowKey}_$c';
+    final MenuController controller = _getOrCreateMenuController(menuKey);
     final isRightHalf = c >= (colMappings.length / 2);
 
     Widget interactiveChild = cellChild;
     GestureTapDownCallback? onSecondaryTapDown;
 
-    if (widget.isEditing) {
+    if (c >= 1) {
       final menuItems = [
         MenuItemButton(
           key: Key('employee_context_menu_copy_${r}_$c'),
@@ -2183,7 +2198,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
         ),
         MenuItemButton(
           key: Key('employee_context_menu_paste_${r}_$c'),
-          onPressed: isCellEditable && _selectedRange != null
+          onPressed: widget.isEditing && isCellEditable && _selectedRange != null
               ? () => _pasteEmployeeSelectedCells()
               : null,
           leadingIcon: const Icon(Icons.paste, size: 18),
@@ -2220,7 +2235,7 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
             });
           }
         }
-        controller?.open();
+        controller.open();
       };
     }
 
@@ -2434,35 +2449,36 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
               width: double.infinity,
               height: double.infinity,
               child: isCellEditing
-                  ? TextField(
-                      key: Key('edit_${rowKey}_${index + 1}'),
-                      controller: _getOrCreateController(
-                        focusKey,
-                        displayVal,
-                        isEditing: isCellEditing,
-                      ),
-                      focusNode: cellFocusNode,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      textAlign: TextAlign.center,
-                      textAlignVertical: TextAlignVertical.center,
-                      maxLines: null,
-                      minLines: null,
-                      expands: true,
-                      style: cellStyle,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        disabledBorder: InputBorder.none,
-                        focusedErrorBorder: InputBorder.none,
-                        errorBorder: InputBorder.none,
-                        isCollapsed: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      onTap: () {
-                        if (_cellEditMode != CellEditMode.typingFromDouble) {
+                  ? Center(
+                      child: TextField(
+                        key: Key('edit_${rowKey}_${index + 1}'),
+                        controller: _getOrCreateController(
+                          focusKey,
+                          displayVal,
+                          isEditing: isCellEditing,
+                        ),
+                        focusNode: cellFocusNode,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        textAlign: TextAlign.center,
+                        textAlignVertical: TextAlignVertical.center,
+                        expands: true,
+                        maxLines: null,
+                        minLines: null,
+                        style: cellStyle,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          focusedErrorBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        onTap: () {
+                          if (_cellEditMode != CellEditMode.typingFromDouble) {
                           final ctrl = widget.controllersCache[focusKey];
                           if (ctrl != null) {
                             ctrl.selection = TextSelection(
@@ -2484,7 +2500,8 @@ class EmployeePlanningTableState extends ConsumerState<EmployeePlanningTable> {
                         });
                         _tableFocusNode.requestFocus();
                       },
-                    )
+                    ),
+                  )
                   : Center(
                       child: Text(
                         isGreyedOut ? '' : displayVal,

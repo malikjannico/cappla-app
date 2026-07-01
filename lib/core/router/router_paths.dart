@@ -15,19 +15,19 @@ class RouterPaths {
   static const String reports = '/reports';
   static const String dashboards = '/dashboards';
   static const String settings = '/settings';
-  static const String settingsActivityGroups = '/settings/acitivitygroups';
+  static const String settingsActivityGroups = '/settings/activitygroups';
   static const String settingsActivityGroupsNew =
-      '/settings/acitivitygroups/new';
+      '/settings/activitygroups/new';
   static const String settingsActivityGroupsDetail =
-      '/settings/acitivitygroups/:id';
+      '/settings/activitygroups/:id';
   static const String settingsActivityGroupsEdit =
-      '/settings/acitivitygroups/:id/edit';
+      '/settings/activitygroups/:id/edit';
   static const String settingsActivitiesNew =
-      '/settings/acitivitygroups/:id/activities/new';
+      '/settings/activitygroups/:id/activities/new';
   static const String settingsActivitiesDetail =
-      '/settings/acitivitygroups/:id/activities/:activityId';
+      '/settings/activitygroups/:id/activities/:activityId';
   static const String settingsActivitiesEdit =
-      '/settings/acitivitygroups/:id/activities/:activityId/edit';
+      '/settings/activitygroups/:id/activities/:activityId/edit';
   static const String settingsCategories = '/settings/categories';
   static const String settingsCategoriesNew = '/settings/categories/new';
   static const String settingsCategoriesDetail = '/settings/categories/:id';
@@ -51,17 +51,17 @@ class RouterPaths {
   static String adminOrgDetailPath(String id) => '/admin/orgs/$id';
   static String adminOrgEditPath(String id) => '/admin/orgs/$id/edit';
   static String settingsActivityGroupsDetailPath(String id) =>
-      '/settings/acitivitygroups/$id';
+      '/settings/activitygroups/$id';
   static String settingsActivityGroupsEditPath(String id) =>
-      '/settings/acitivitygroups/$id/edit';
+      '/settings/activitygroups/$id/edit';
   static String settingsActivitiesNewPath(String groupId) =>
-      '/settings/acitivitygroups/$groupId/activities/new';
+      '/settings/activitygroups/$groupId/activities/new';
   static String settingsActivitiesDetailPath(
     String groupId,
     String activityId,
-  ) => '/settings/acitivitygroups/$groupId/activities/$activityId';
+  ) => '/settings/activitygroups/$groupId/activities/$activityId';
   static String settingsActivitiesEditPath(String groupId, String activityId) =>
-      '/settings/acitivitygroups/$groupId/activities/$activityId/edit';
+      '/settings/activitygroups/$groupId/activities/$activityId/edit';
   static String settingsCategoriesDetailPath(String id) =>
       '/settings/categories/$id';
   static String settingsCategoriesEditPath(String id) =>

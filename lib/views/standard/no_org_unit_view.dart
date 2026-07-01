@@ -86,7 +86,6 @@ class NoOrgUnitView extends ConsumerWidget {
                       key: const Key('no_org_logout_button'),
                       onPressed: () async {
                         await ref.read(authServiceProvider).signOut();
-                        ref.read(currentUserProvider.notifier).state = null;
                         if (context.mounted) {
                           context.go(RouterPaths.login);
                         }

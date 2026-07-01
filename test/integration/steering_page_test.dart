@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cappla/main.dart';
-import 'package:cappla/models/user_model.dart';
 import 'package:cappla/models/org_unit_model.dart';
 import 'package:cappla/core/providers/providers.dart';
 import 'package:cappla/core/router/router_paths.dart';
@@ -55,7 +54,7 @@ void main() {
           name: 'IT DQS Team A',
           abbreviation: 'IT DQS A',
           headOfEmail: 'MalikJannico.Press@vetter-pharma.com',
-          type: 'section',
+          type: 'group',
           parentId: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
           childIds: [],
           status: 'Active',
@@ -436,7 +435,7 @@ void main() {
           name: 'IT DQS Team A',
           abbreviation: 'IT DQS A',
           headOfEmail: 'MalikJannico.Press@vetter-pharma.com',
-          type: 'section',
+          type: 'group',
           parentId: 'e6f4772b-8a1a-4d7a-b50a-9d7a188f6f7d',
           childIds: [],
           status: 'Active',

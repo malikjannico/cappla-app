@@ -616,6 +616,7 @@ void main() {
           status: 'Active',
         );
         harness.seedOrgUnit(orgTemp);
+        await tester.pumpAndSettle();
 
         // Click Save
         await tester.tap(find.byKey(const Key('org_create_save_button')));

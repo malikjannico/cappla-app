@@ -1,6 +1,5 @@
-// File: lib/core/utils/capacity_calculator.dart
-
 import '../../models/user_capacity_model.dart';
+import '../../models/enums.dart';
 
 class CapacityCalculator {
   /// Calculates the total available capacity in hours for a given month and year
@@ -14,15 +13,15 @@ class CapacityCalculator {
 
     // Sort specific capacities by last modified timestamp descending,
     // so that the most recently updated override takes precedence.
-    final specificCaps = capacities.where((c) => c.type == 'Specific').toList()
+    final specificCaps = capacities.where((c) => c.type == CapacityType.specific).toList()
       ..sort((a, b) => b.lastModifiedAt.compareTo(a.lastModifiedAt));
 
     final standardCap = capacities.firstWhere(
-      (c) => c.type == 'Standard',
+      (c) => c.type == CapacityType.standard,
       orElse: () => UserCapacityModel(
         id: '',
         userEmail: '',
-        type: 'Standard',
+        type: CapacityType.standard,
         monday: 0.0,
         tuesday: 0.0,
         wednesday: 0.0,

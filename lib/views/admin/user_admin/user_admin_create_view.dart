@@ -5,7 +5,6 @@ import 'package:uuid/uuid.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/router/router_paths.dart';
-import '../../../models/user_model.dart';
 import '../../../models/org_unit_model.dart';
 
 class UserAdminCreateView extends ConsumerStatefulWidget {
@@ -58,6 +57,13 @@ class _UserAdminCreateViewState extends ConsumerState<UserAdminCreateView> {
       return false;
     }
 
+    final db = ref.read(databaseServiceProvider);
+    final existing = await db.getUser(email);
+    if (existing != null) {
+      setState(() => _errorMessage = 'Error: User with this email already exists.');
+      return false;
+    }
+
     try {
       final adminEmail = ref.read(currentUserProvider)?.email ?? 'system';
       final now = DateTime.now();
@@ -79,10 +85,13 @@ class _UserAdminCreateViewState extends ConsumerState<UserAdminCreateView> {
       await ref.read(authServiceProvider).createUser(newUser, tempPassword);
 
       final db = ref.read(databaseServiceProvider);
-      if (!db.toString().contains('Mock')) {
+      final firestore = ref.read(firestoreProvider);
+      if (!db.toString().contains('Mock') &&
+          !firestore.toString().contains('Mock') &&
+          !firestore.toString().contains('Fake')) {
         // Write request to trigger activation email
         final baseUrl = Uri.base.origin;
-        await FirebaseFirestore.instance
+        await firestore
             .collection('activationRequests')
             .doc(email.trim().toLowerCase())
             .set({

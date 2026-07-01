@@ -5,7 +5,6 @@ import '../../../core/providers/providers.dart';
 import '../../../core/router/router_paths.dart';
 import '../../../core/theme/theme_extensions.dart';
 import '../../../models/org_unit_model.dart';
-import '../../../models/user_model.dart';
 import 'categories_list_view.dart' show ShareWizardModal;
 import 'category_create_view.dart' show BreadcrumbLink;
 import 'change_ownership_dialog.dart';
@@ -226,7 +225,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
       orElse: () => null,
     );
 
-    final validityStr = activity.type == 'Limited'
+    final validityStr = activity.type == ActivityType.limited
         ? '${activity.validityStart?.toLocal().toString().split(' ')[0]} to ${activity.validityEnd?.toLocal().toString().split(' ')[0]}'
         : '-';
 
@@ -333,7 +332,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                                     if (actStatus == 'Inactive') {
                                       // If it is Limited and expired, require a new date range
                                       final isExpired =
-                                          activity.type == 'Limited' &&
+                                          activity.type == ActivityType.limited &&
                                           activity.validityEnd != null &&
                                           activity.validityEnd!.isBefore(
                                             DateTime.now(),
@@ -414,11 +413,11 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                                       if (actStatus == 'Inactive') {
                                         // If it is Limited and expired, require a new date range
                                         final isExpired =
-                                            activity.type == 'Limited' &&
-                                            activity.validityEnd != null &&
-                                            activity.validityEnd!.isBefore(
-                                              DateTime.now(),
-                                            );
+                                           activity.type == ActivityType.limited &&
+                                           activity.validityEnd != null &&
+                                           activity.validityEnd!.isBefore(
+                                             DateTime.now(),
+                                           );
 
                                         if (isExpired) {
                                           _showReactivateModal(activity);
@@ -490,7 +489,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                                     if (actStatus == 'Inactive') {
                                       // If it is Limited and expired, require a new date range
                                       final isExpired =
-                                          activity.type == 'Limited' &&
+                                          activity.type == ActivityType.limited &&
                                           activity.validityEnd != null &&
                                           activity.validityEnd!.isBefore(
                                             DateTime.now(),
@@ -687,14 +686,14 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                           canRequestFocus: false,
                           skipTraversal: true,
                         ),
-                        controller: TextEditingController(text: activity.type),
+                        controller: TextEditingController(text: activity.type.value),
                         decoration: const InputDecoration(
                           labelText: 'Type',
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.zero,
                         ),
                       ),
-                      if (activity.type == 'Limited') ...[
+                      if (activity.type == ActivityType.limited) ...[
                         const SizedBox(height: 16),
                         TextField(
                           key: const Key('activity_detail_validity'),

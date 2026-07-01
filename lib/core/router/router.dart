@@ -1,10 +1,11 @@
+// File: lib/core/router/router.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'router_paths.dart';
 import 'router_guards.dart';
 import '../providers/providers.dart';
-import '../../models/user_model.dart';
 import '../../models/org_unit_model.dart';
 
 // View Imports
@@ -30,9 +31,11 @@ import '../../views/standard/no_org_unit_view.dart';
 import '../../views/admin/user_admin/user_admin_list_view.dart';
 import '../../views/admin/user_admin/user_admin_create_view.dart';
 import '../../views/admin/user_admin/user_admin_detail_view.dart';
-import '../../views/admin/org_admin/org_admin_view.dart';
+import '../../views/admin/org_admin/org_admin_list_view.dart';
 import '../../views/admin/org_admin/org_admin_create_view.dart';
-import '../../views/admin/org_admin/org_detail_view.dart';
+import '../../views/admin/org_admin/org_admin_detail_view.dart';
+
+part 'router.g.dart';
 
 // Dummy NotFoundView for unknown route paths
 class NotFoundView extends StatelessWidget {
@@ -47,15 +50,25 @@ class NotFoundView extends StatelessWidget {
 class RouterTransitionNotifier extends ChangeNotifier {
   RouterTransitionNotifier(Ref ref) {
     ref.listen<UserModel?>(currentUserProvider, (previous, next) {
+      debugPrint('RouterTransitionNotifier: currentUserProvider changed next=${next?.email}');
+      if (next == null || next.status == 'Inactive') {
+        final authService = ref.read(authServiceProvider);
+        if (authService.hasCurrentUser) {
+          authService.signOut();
+        }
+      }
       notifyListeners();
     });
     ref.listen<OrgUnitModel?>(userOwnedOrgUnitProvider, (previous, next) {
+      debugPrint('RouterTransitionNotifier: userOwnedOrgUnitProvider changed');
       notifyListeners();
     });
-    ref.listen(orgUnitsStreamProvider, (previous, next) {
+    ref.listen<OrgUnitModel?>(userOrgUnitProvider, (previous, next) {
+      debugPrint('RouterTransitionNotifier: userOrgUnitProvider changed');
       notifyListeners();
     });
     ref.listen(authStateSyncProvider, (previous, next) {
+      debugPrint('RouterTransitionNotifier: authStateSyncProvider changed next=${next.value?.email}');
       notifyListeners();
     });
   }
@@ -70,19 +83,21 @@ class RiverpodAuthState implements AuthStateInterface {
   final List<OrgUnitModel> allOrgs;
   @override
   final bool isOrgUnitsLoading;
+  final bool isAuthUserNull;
 
   RiverpodAuthState(
     this.user,
     this.allOrgs, {
     this.isOrgUnitsLoading = false,
+    required this.isAuthUserNull,
   });
 
   @override
-  bool get isAuthenticated => user != null;
+  bool get isAuthenticated => user != null && !isAuthUserNull;
 
   @override
   UserProfile? get currentUser {
-    if (user == null) return null;
+    if (user == null || isAuthUserNull) return null;
     final isHead = allOrgs.any(
       (o) =>
           o.headOfEmail.trim().toLowerCase() ==
@@ -108,288 +123,342 @@ class RiverpodAuthState implements AuthStateInterface {
   }
 }
 
+// =========================================================================
+// GO ROUTER BUILDER TYPED ROUTE DEFINITIONS
+// =========================================================================
+
+@TypedGoRoute<LoginRoute>(path: '/login')
+class LoginRoute extends GoRouteData {
+  const LoginRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) => LoginView(key: state.pageKey);
+}
+
+@TypedGoRoute<ResetPasswordRoute>(path: '/reset-password')
+class ResetPasswordRoute extends GoRouteData {
+  final String? email;
+  final bool? trigger;
+
+  const ResetPasswordRoute({this.email, this.trigger});
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    final triggerVal = trigger ?? false;
+    return ResetPasswordView(email: email ?? '', triggerCode: triggerVal);
+  }
+}
+
+@TypedShellRoute<AppShellRouteData>(
+  routes: <TypedRoute<GoRouteData>>[
+    TypedGoRoute<HomeRoute>(path: '/'),
+    TypedGoRoute<PlanningRoute>(
+      path: '/plan',
+      routes: [
+        TypedGoRoute<PlanActivitiesRoute>(path: 'activities'),
+        TypedGoRoute<PlanEmployeesRoute>(path: 'employees'),
+      ],
+    ),
+    TypedGoRoute<ReportsRoute>(path: '/reports'),
+    TypedGoRoute<DashboardsRoute>(path: '/dashboards'),
+    TypedGoRoute<SettingsRoute>(
+      path: '/settings',
+      routes: [
+        TypedGoRoute<SettingsActivityGroupsRoute>(
+          path: 'activitygroups',
+          routes: [
+            TypedGoRoute<SettingsActivityGroupsNewRoute>(path: 'new'),
+            TypedGoRoute<SettingsActivityGroupsDetailRoute>(
+              path: ':id',
+              routes: [
+                TypedGoRoute<SettingsActivityGroupsEditRoute>(path: 'edit'),
+                TypedGoRoute<SettingsActivitiesNewRoute>(path: 'activities/new'),
+                TypedGoRoute<SettingsActivitiesDetailRoute>(
+                  path: 'activities/:activityId',
+                  routes: [
+                    TypedGoRoute<SettingsActivitiesEditRoute>(path: 'edit'),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+        TypedGoRoute<SettingsCategoriesRoute>(
+          path: 'categories',
+          routes: [
+            TypedGoRoute<SettingsCategoriesNewRoute>(path: 'new'),
+            TypedGoRoute<SettingsCategoriesDetailRoute>(
+              path: ':id',
+              routes: [
+                TypedGoRoute<SettingsCategoriesEditRoute>(path: 'edit'),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ),
+    TypedGoRoute<ProfileRoute>(
+      path: '/profile',
+      routes: [
+        TypedGoRoute<ProfileEditRoute>(path: 'edit'),
+      ],
+    ),
+    TypedGoRoute<AdminUsersRoute>(
+      path: '/admin/users',
+      routes: [
+        TypedGoRoute<AdminUserNewRoute>(path: 'new'),
+        TypedGoRoute<AdminUserDetailRoute>(
+          path: ':id',
+          routes: [
+            TypedGoRoute<AdminUserEditRoute>(path: 'edit'),
+          ],
+        ),
+      ],
+    ),
+    TypedGoRoute<AdminOrgsRoute>(
+      path: '/admin/orgs',
+      routes: [
+        TypedGoRoute<AdminOrgNewRoute>(path: 'new'),
+        TypedGoRoute<AdminOrgDetailRoute>(
+          path: ':id',
+          routes: [
+            TypedGoRoute<AdminOrgEditRoute>(path: 'edit'),
+          ],
+        ),
+      ],
+    ),
+  ],
+)
+class AppShellRouteData extends ShellRouteData {
+  const AppShellRouteData();
+
+  @override
+  Widget builder(BuildContext context, GoRouterState state, Widget navigator) {
+    return AppShellLayout(child: navigator);
+  }
+}
+
+class HomeRoute extends GoRouteData {
+  const HomeRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const NoOrgUnitView();
+}
+
+class PlanningRoute extends GoRouteData {
+  const PlanningRoute();
+  @override
+  String? redirect(BuildContext context, GoRouterState state) {
+    if (state.uri.path == '/plan') {
+      return '/plan/activities';
+    }
+    return null;
+  }
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const SizedBox.shrink();
+}
+
+class PlanActivitiesRoute extends GoRouteData {
+  const PlanActivitiesRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const PlanningView(viewType: 'activity');
+}
+
+class PlanEmployeesRoute extends GoRouteData {
+  const PlanEmployeesRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const PlanningView(viewType: 'employee');
+}
+
+class ReportsRoute extends GoRouteData {
+  const ReportsRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const ReportsView();
+}
+
+class DashboardsRoute extends GoRouteData {
+  const DashboardsRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const DashboardsView();
+}
+
+class SettingsRoute extends GoRouteData {
+  const SettingsRoute();
+  @override
+  String? redirect(BuildContext context, GoRouterState state) {
+    if (state.uri.path == '/settings') {
+      return '/settings/activitygroups';
+    }
+    return null;
+  }
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const SizedBox.shrink();
+}
+
+class SettingsActivityGroupsRoute extends GoRouteData {
+  const SettingsActivityGroupsRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const ActivityGroupsListView();
+}
+
+class SettingsActivityGroupsNewRoute extends GoRouteData {
+  const SettingsActivityGroupsNewRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const ActivityGroupCreateView();
+}
+
+class SettingsActivityGroupsDetailRoute extends GoRouteData {
+  final String id;
+  const SettingsActivityGroupsDetailRoute({required this.id});
+  @override
+  Widget build(BuildContext context, GoRouterState state) => ActivityGroupDetailView(id: id);
+}
+
+class SettingsActivityGroupsEditRoute extends GoRouteData {
+  final String id;
+  const SettingsActivityGroupsEditRoute({required this.id});
+  @override
+  Widget build(BuildContext context, GoRouterState state) => ActivityGroupEditView(id: id);
+}
+
+class SettingsActivitiesNewRoute extends GoRouteData {
+  final String id;
+  const SettingsActivitiesNewRoute({required this.id});
+  @override
+  Widget build(BuildContext context, GoRouterState state) => ActivityCreateView(activityGroupId: id);
+}
+
+class SettingsActivitiesDetailRoute extends GoRouteData {
+  final String id;
+  final String activityId;
+  const SettingsActivitiesDetailRoute({required this.id, required this.activityId});
+  @override
+  Widget build(BuildContext context, GoRouterState state) => ActivityDetailView(activityGroupId: id, activityId: activityId);
+}
+
+class SettingsActivitiesEditRoute extends GoRouteData {
+  final String id;
+  final String activityId;
+  const SettingsActivitiesEditRoute({required this.id, required this.activityId});
+  @override
+  Widget build(BuildContext context, GoRouterState state) => ActivityEditView(activityGroupId: id, activityId: activityId);
+}
+
+class SettingsCategoriesRoute extends GoRouteData {
+  const SettingsCategoriesRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const CategoriesListView();
+}
+
+class SettingsCategoriesNewRoute extends GoRouteData {
+  const SettingsCategoriesNewRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const CategoryCreateView();
+}
+
+class SettingsCategoriesDetailRoute extends GoRouteData {
+  final String id;
+  const SettingsCategoriesDetailRoute({required this.id});
+  @override
+  Widget build(BuildContext context, GoRouterState state) => CategoryDetailView(id: id);
+}
+
+class SettingsCategoriesEditRoute extends GoRouteData {
+  final String id;
+  const SettingsCategoriesEditRoute({required this.id});
+  @override
+  Widget build(BuildContext context, GoRouterState state) => CategoryEditView(id: id);
+}
+
+class ProfileRoute extends GoRouteData {
+  const ProfileRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const ProfileView();
+}
+
+class ProfileEditRoute extends GoRouteData {
+  const ProfileEditRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const ProfileView();
+}
+
+class AdminUsersRoute extends GoRouteData {
+  const AdminUsersRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const UserAdminListView();
+}
+
+class AdminUserNewRoute extends GoRouteData {
+  const AdminUserNewRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const UserAdminCreateView();
+}
+
+class AdminUserDetailRoute extends GoRouteData {
+  final String id;
+  const AdminUserDetailRoute({required this.id});
+  @override
+  Widget build(BuildContext context, GoRouterState state) => UserAdminDetailView(id: id);
+}
+
+class AdminUserEditRoute extends GoRouteData {
+  final String id;
+  const AdminUserEditRoute({required this.id});
+  @override
+  Widget build(BuildContext context, GoRouterState state) => UserAdminDetailView(id: id);
+}
+
+class AdminOrgsRoute extends GoRouteData {
+  const AdminOrgsRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const OrgAdminListView();
+}
+
+class AdminOrgNewRoute extends GoRouteData {
+  const AdminOrgNewRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const OrgAdminCreateView();
+}
+
+class AdminOrgDetailRoute extends GoRouteData {
+  final String id;
+  const AdminOrgDetailRoute({required this.id});
+  @override
+  Widget build(BuildContext context, GoRouterState state) => OrgAdminDetailView(id: id);
+}
+
+class AdminOrgEditRoute extends GoRouteData {
+  final String id;
+  const AdminOrgEditRoute({required this.id});
+  @override
+  Widget build(BuildContext context, GoRouterState state) => OrgAdminDetailView(id: id);
+}
+
+// =========================================================================
+// GO ROUTER GLOBAL CONFIGURATION PROVIDER
+// =========================================================================
+
 final routerProvider = Provider<GoRouter>((ref) {
   final listenable = ref.watch(routerTransitionNotifierProvider);
 
   return GoRouter(
     initialLocation: RouterPaths.home,
     refreshListenable: listenable,
+    routes: $appRoutes,
     redirect: (context, state) {
       final user = ref.read(currentUserProvider);
       final orgUnitsAsync = ref.read(orgUnitsStreamProvider);
       final allOrgs = orgUnitsAsync.value ?? <OrgUnitModel>[];
       final isOrgUnitsLoading = orgUnitsAsync.isLoading ||
           !orgUnitsAsync.hasValue;
+      final auth = ref.read(firebaseAuthProvider);
+      final isAuthUserNull = auth.currentUser == null;
       final authState = RiverpodAuthState(
         user,
         allOrgs,
         isOrgUnitsLoading: isOrgUnitsLoading,
+        isAuthUserNull: isAuthUserNull,
       );
       return appRedirectGuard(context, state, authState);
     },
-    routes: [
-      // Guest / Authentication routes outside of the global shell
-      GoRoute(
-        path: RouterPaths.login,
-        name: RouterNames.login,
-        pageBuilder: (context, state) =>
-            const NoTransitionPage(child: LoginView()),
-      ),
-      GoRoute(
-        path: RouterPaths.resetPassword,
-        name: RouterNames.resetPassword,
-        pageBuilder: (context, state) {
-          final email = state.uri.queryParameters['email'] ?? '';
-          final trigger = state.uri.queryParameters['trigger'] == 'true';
-          return NoTransitionPage(
-            child: ResetPasswordView(email: email, triggerCode: trigger),
-          );
-        },
-      ),
-
-      // Application Shell wrapping pages with top nav layout scaffold
-      ShellRoute(
-        builder: (context, state, child) {
-          return AppShellLayout(child: child);
-        },
-        routes: [
-          GoRoute(
-            path: RouterPaths.home,
-            name: RouterNames.home,
-            pageBuilder: (context, state) =>
-                const NoTransitionPage(child: NoOrgUnitView()),
-          ),
-          GoRoute(
-            path: RouterPaths.planning,
-            name: RouterNames.planning,
-            redirect: (context, state) => RouterPaths.planActivities,
-          ),
-          GoRoute(
-            path: RouterPaths.planActivities,
-            name: RouterNames.planActivities,
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlanningView(viewType: 'activity'),
-            ),
-          ),
-          GoRoute(
-            path: RouterPaths.planEmployees,
-            name: RouterNames.planEmployees,
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlanningView(viewType: 'employee'),
-            ),
-          ),
-          GoRoute(
-            path: RouterPaths.reports,
-            name: RouterNames.reports,
-            pageBuilder: (context, state) =>
-                const NoTransitionPage(child: ReportsView()),
-          ),
-          GoRoute(
-            path: RouterPaths.dashboards,
-            name: RouterNames.dashboards,
-            pageBuilder: (context, state) =>
-                const NoTransitionPage(child: DashboardsView()),
-          ),
-          GoRoute(
-            path: RouterPaths.settings,
-            name: RouterNames.settings,
-            redirect: (context, state) => RouterPaths.settingsActivityGroups,
-          ),
-          GoRoute(
-            path: RouterPaths.settingsActivityGroups,
-            name: RouterNames.settingsActivityGroups,
-            pageBuilder: (context, state) =>
-                const NoTransitionPage(child: ActivityGroupsListView()),
-            routes: [
-              GoRoute(
-                path: 'new',
-                name: RouterNames.settingsActivityGroupsNew,
-                pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: ActivityGroupCreateView()),
-              ),
-              GoRoute(
-                path: ':id',
-                name: RouterNames.settingsActivityGroupsDetail,
-                pageBuilder: (context, state) {
-                  final id = state.pathParameters['id'] ?? '';
-                  return NoTransitionPage(
-                    child: ActivityGroupDetailView(id: id),
-                  );
-                },
-                routes: [
-                  GoRoute(
-                    path: 'edit',
-                    name: RouterNames.settingsActivityGroupsEdit,
-                    pageBuilder: (context, state) {
-                      final id = state.pathParameters['id'] ?? '';
-                      return NoTransitionPage(
-                        child: ActivityGroupEditView(id: id),
-                      );
-                    },
-                  ),
-                  GoRoute(
-                    path: 'activities/new',
-                    name: RouterNames.settingsActivitiesNew,
-                    pageBuilder: (context, state) {
-                      final id = state.pathParameters['id'] ?? '';
-                      return NoTransitionPage(
-                        child: ActivityCreateView(activityGroupId: id),
-                      );
-                    },
-                  ),
-                  GoRoute(
-                    path: 'activities/:activityId',
-                    name: RouterNames.settingsActivitiesDetail,
-                    pageBuilder: (context, state) {
-                      final id = state.pathParameters['id'] ?? '';
-                      final activityId =
-                          state.pathParameters['activityId'] ?? '';
-                      return NoTransitionPage(
-                        child: ActivityDetailView(
-                          activityGroupId: id,
-                          activityId: activityId,
-                        ),
-                      );
-                    },
-                    routes: [
-                      GoRoute(
-                        path: 'edit',
-                        name: RouterNames.settingsActivitiesEdit,
-                        pageBuilder: (context, state) {
-                          final id = state.pathParameters['id'] ?? '';
-                          final activityId =
-                              state.pathParameters['activityId'] ?? '';
-                          return NoTransitionPage(
-                            child: ActivityEditView(
-                              activityGroupId: id,
-                              activityId: activityId,
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-          GoRoute(
-            path: RouterPaths.settingsCategories,
-            name: RouterNames.settingsCategories,
-            pageBuilder: (context, state) =>
-                const NoTransitionPage(child: CategoriesListView()),
-            routes: [
-              GoRoute(
-                path: 'new',
-                name: RouterNames.settingsCategoriesNew,
-                pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: CategoryCreateView()),
-              ),
-              GoRoute(
-                path: ':id',
-                name: RouterNames.settingsCategoriesDetail,
-                pageBuilder: (context, state) {
-                  final id = state.pathParameters['id'] ?? '';
-                  return NoTransitionPage(child: CategoryDetailView(id: id));
-                },
-                routes: [
-                  GoRoute(
-                    path: 'edit',
-                    name: RouterNames.settingsCategoriesEdit,
-                    pageBuilder: (context, state) {
-                      final id = state.pathParameters['id'] ?? '';
-                      return NoTransitionPage(child: CategoryEditView(id: id));
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-          GoRoute(
-            path: RouterPaths.profile,
-            name: RouterNames.profile,
-            pageBuilder: (context, state) =>
-                const NoTransitionPage(child: ProfileView()),
-            routes: [
-              GoRoute(
-                path: 'edit',
-                name: RouterNames.profileEdit,
-                pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: ProfileView()),
-              ),
-            ],
-          ),
-
-          // Admin views with nested path structures
-          GoRoute(
-            path: RouterPaths.adminUsers,
-            name: RouterNames.adminUsers,
-            pageBuilder: (context, state) =>
-                const NoTransitionPage(child: UserAdminListView()),
-            routes: [
-              GoRoute(
-                path: 'new', // Evaluates to /admin/users/new
-                name: RouterNames.adminUserNew,
-                pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: UserAdminCreateView()),
-              ),
-              GoRoute(
-                path: ':id', // Evaluates to /admin/users/:id
-                name: RouterNames.adminUserDetail,
-                pageBuilder: (context, state) {
-                  final id = state.pathParameters['id'] ?? '';
-                  return NoTransitionPage(child: UserAdminDetailView(id: id));
-                },
-                routes: [
-                  GoRoute(
-                    path: 'edit', // Evaluates to /admin/users/:id/edit
-                    name: RouterNames.adminUserEdit,
-                    pageBuilder: (context, state) {
-                      final id = state.pathParameters['id'] ?? '';
-                      return NoTransitionPage(
-                        child: UserAdminDetailView(id: id),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-          GoRoute(
-            path: RouterPaths.adminOrgs,
-            name: RouterNames.adminOrgs,
-            pageBuilder: (context, state) =>
-                const NoTransitionPage(child: OrgAdminView()),
-            routes: [
-              GoRoute(
-                path: 'new', // Evaluates to /admin/orgs/new
-                name: RouterNames.adminOrgNew,
-                pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: OrgAdminCreateView()),
-              ),
-              GoRoute(
-                path: ':id', // Evaluates to /admin/orgs/:id
-                name: RouterNames.adminOrgDetail,
-                pageBuilder: (context, state) {
-                  final id = state.pathParameters['id'] ?? '';
-                  return NoTransitionPage(child: OrgDetailView(id: id));
-                },
-                routes: [
-                  GoRoute(
-                    path: 'edit', // Evaluates to /admin/orgs/:id/edit
-                    name: RouterNames.adminOrgEdit,
-                    pageBuilder: (context, state) {
-                      final id = state.pathParameters['id'] ?? '';
-                      return NoTransitionPage(child: OrgDetailView(id: id));
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    ],
     errorBuilder: (context, state) => const NotFoundView(),
   );
 });

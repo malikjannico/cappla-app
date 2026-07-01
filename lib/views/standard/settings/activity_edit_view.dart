@@ -228,7 +228,7 @@ class _ActivityEditViewState extends ConsumerState<ActivityEditView> {
     if (!_initialized || widget.activityId != _lastId) {
       _nameController.text = activity.name;
       _selectedCategoryId = activity.categoryId;
-      _selectedType = activity.type;
+      _selectedType = activity.type.value;
       _validityStart = activity.validityStart;
       _validityEnd = activity.validityEnd;
       _startDateController.text = _validityStart != null

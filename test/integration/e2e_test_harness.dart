@@ -1,87 +1,66 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cappla/models/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:fake_cloud_firestore/src/mock_document_reference.dart';
 import 'package:cappla/models/org_unit_model.dart';
 import 'package:cappla/core/providers/providers.dart';
+import 'package:cappla/firebase_options.dart';
 
 // =========================================================================
-// MOCK / FAKE CLASSES FOR FIREBASE (Used when package imports are unavailable)
+// MOCK / FAKE CLASSES FOR FIREBASE (Modern, type-safe wrappers)
 // =========================================================================
 
-/// Mock User matching the Firebase User interface
-class MockUser {
-  final String uid;
-  final String? email;
-  final String? displayName;
-
-  MockUser({required this.uid, this.email, this.displayName});
-}
-
-/// Mock Firebase Auth to simulate login, logout, and password reset flows
-class MockFirebaseAuth {
-  MockUser? _currentUser;
+class MockFirebaseAuthWithRegistry extends MockFirebaseAuth {
   final Map<String, String> _userCredentials = {}; // email -> password
   final List<String> sentPasswordResets = [];
-  final _authController = StreamController<MockUser?>.broadcast();
 
-  MockUser? get currentUser => _currentUser;
-
-  Stream<MockUser?> authStateChanges() async* {
-    yield _currentUser;
-    yield* _authController.stream;
-  }
+  MockFirebaseAuthWithRegistry() : super(signedIn: false);
 
   void registerUser(String email, String password) {
     _userCredentials[email.trim().toLowerCase()] = password;
   }
 
-  Future<void> signInWithEmailAndPassword({
+  @override
+  Future<UserCredential> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
     final normalizedEmail = email.trim().toLowerCase();
     if (_userCredentials.containsKey(normalizedEmail) &&
         _userCredentials[normalizedEmail] == password) {
-      _currentUser = MockUser(
-        uid: normalizedEmail.hashCode.toString(),
+      final id = normalizedEmail.hashCode.toString();
+      mockUser = MockUser(
+        uid: id,
         email: normalizedEmail,
         displayName: normalizedEmail.split('@').first,
       );
-      _authController.add(_currentUser);
+      return super.signInWithEmailAndPassword(email: email, password: password);
     } else {
-      throw Exception('auth/invalid-credential');
+      throw FirebaseAuthException(
+        code: 'invalid-credential',
+        message: 'The email address or password is incorrect.',
+      );
     }
   }
 
-  Future<void> signOut() async {
-    _currentUser = null;
-    _authController.add(null);
-  }
-
-  Future<void> sendPasswordResetEmail({required String email}) async {
+  @override
+  Future<void> sendPasswordResetEmail({
+    required String email,
+    ActionCodeSettings? actionCodeSettings,
+  }) async {
     sentPasswordResets.add(email.trim().toLowerCase());
+    return super.sendPasswordResetEmail(email: email, actionCodeSettings: actionCodeSettings);
   }
 }
 
-/// Simple In-Memory Firestore simulation for E2E testing
-class MockFirebaseFirestore {
-  final _changeController = StreamController<void>.broadcast();
-  Stream<void> get onChange => _changeController.stream;
-
-  final Map<String, Map<String, Map<String, dynamic>>> collections = {
-    'users': {},
-    'orgUnits': {},
-    'categories': {},
-    'activityGroups': {},
-    'activities': {},
-    'userCapacities': {},
-  };
-
+class MockFirebaseFirestoreWithHelpers extends FakeFirebaseFirestore {
   void setData(String collection, String docId, Map<String, dynamic> data) {
     final normalizedDocId = collection == 'users'
         ? docId.trim().toLowerCase()
         : docId;
-    collections[collection] ??= {};
+
     if (collection == 'orgUnits') {
       final parentId = data['parentId'] as String?;
       if (parentId != null) {
@@ -93,51 +72,87 @@ class MockFirebaseFirestore {
           if (current == normalizedDocId) {
             throw Exception('Cycle detected: Circular hierarchy not allowed.');
           }
-          final parentData = collections['orgUnits']?[current];
+          final parentData = getData('orgUnits', current);
           if (parentData == null) break;
           current = parentData['parentId'] as String?;
         }
       }
     }
-    collections[collection]![normalizedDocId] = data;
-    _changeController.add(null);
+
+    final docRef = this.collection(collection).doc(normalizedDocId) as MockDocumentReference;
+    docRef.docsData[docRef.path] = data;
+    saveDocument(docRef.path);
+    docRef.set(Map<String, dynamic>.from(data));
   }
 
   Map<String, dynamic>? getData(String collection, String docId) {
     final normalizedDocId = collection == 'users'
         ? docId.trim().toLowerCase()
         : docId;
-    return collections[collection]?[normalizedDocId];
+    final path = '$collection/$normalizedDocId';
+    final docRef = doc(path) as MockDocumentReference;
+    final rawData = docRef.docsData[docRef.path];
+    if (rawData == null) return null;
+    return Map<String, dynamic>.from(rawData);
+  }
+
+  Map<String, Map<String, Map<String, dynamic>>> get collections {
+    final docRef = doc('dummy/dummy') as MockDocumentReference;
+    final docsMap = docRef.docsData;
+    final Map<String, Map<String, Map<String, dynamic>>> result = {
+      'users': {},
+      'orgUnits': {},
+      'categories': {},
+      'activityGroups': {},
+      'activities': {},
+      'userCapacities': {},
+    };
+    for (final entry in docsMap.entries) {
+      final path = entry.key;
+      final parts = path.split('/');
+      if (parts.length == 2) {
+        final col = parts[0];
+        final id = parts[1];
+        final val = entry.value;
+        if (val is Map) {
+          result.putIfAbsent(col, () => {})[id] = Map<String, dynamic>.from(val);
+        }
+      }
+    }
+    return result;
   }
 
   void deleteData(String collection, String docId) {
     final normalizedDocId = collection == 'users'
         ? docId.trim().toLowerCase()
         : docId;
-    collections[collection]?.remove(normalizedDocId);
-    _changeController.add(null);
+    final docRef = this.collection(collection).doc(normalizedDocId) as MockDocumentReference;
+    docRef.docsData.remove(docRef.path);
+    removeSavedDocument(docRef.path);
+    docRef.delete();
   }
 
   void clear() {
-    for (var key in collections.keys) {
-      collections[key]!.clear();
-    }
-    _changeController.add(null);
+    clearPersistence();
   }
 }
 
-// =========================================================================
-// E2E TEST HARNESS CLASS
-// =========================================================================
-
 class E2ETestHarness {
-  final MockFirebaseAuth mockAuth = MockFirebaseAuth();
-  final MockFirebaseFirestore mockFirestore = MockFirebaseFirestore();
+  final MockFirebaseAuthWithRegistry mockAuth = MockFirebaseAuthWithRegistry();
+  final MockFirebaseFirestoreWithHelpers mockFirestore = MockFirebaseFirestoreWithHelpers();
   late final ProviderContainer container;
 
   E2ETestHarness() {
     container = ProviderContainer(
       overrides: [
+        appConfigProvider.overrideWithValue(
+          const AppConfig(
+            environment: AppEnvironment.local,
+            firebaseOptions: DefaultFirebaseOptions.local,
+            useEmulator: false,
+            isTesting: true,
+          ),
+        ),
         firebaseAuthProvider.overrideWithValue(mockAuth),
         firestoreProvider.overrideWithValue(mockFirestore),
       ],
@@ -289,19 +304,22 @@ class E2ETestHarness {
     final userData = mockFirestore.getData('users', email);
     if (userData != null) {
       final user = UserModel.fromMap(userData);
-      if (user.status == 'Inactive') {
+      if (user.status == UserStatus.inactive) {
         mockAuth.signOut();
         throw Exception('auth/user-disabled');
       }
-      container.read(currentUserProvider.notifier).state = user;
     } else {
       throw Exception('auth/user-not-found');
     }
+    // Wait for the stream provider to load the user
+    await container.read(authStateSyncProvider.future);
   }
 
   /// Helper to sign out
   Future<void> signOut() async {
     await mockAuth.signOut();
-    container.read(currentUserProvider.notifier).state = null;
+    await container.read(authStateSyncProvider.future);
   }
 }
+
+typedef MockFirebaseFirestore = MockFirebaseFirestoreWithHelpers;

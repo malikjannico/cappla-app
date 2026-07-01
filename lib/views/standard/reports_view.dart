@@ -7,7 +7,6 @@ import '../../core/router/router_paths.dart';
 import '../../core/providers/providers.dart';
 import '../../core/utils/capacity_calculator.dart';
 import '../../models/org_unit_model.dart';
-import '../../models/user_model.dart';
 import '../../core/utils/csv_export_helper.dart';
 import 'm3_segmented_button.dart';
 

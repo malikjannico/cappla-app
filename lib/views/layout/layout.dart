@@ -423,8 +423,8 @@ class _AppShellLayoutState extends ConsumerState<AppShellLayout> {
                     child: MenuItemButton(
                       key: const Key('profile_menu_item_logout'),
                       onPressed: () async {
+                        debugPrint('layout_logout: pressed');
                         await ref.read(authServiceProvider).signOut();
-                        ref.read(currentUserProvider.notifier).state = null;
                         if (context.mounted) {
                           context.go(RouterPaths.login);
                         }
@@ -509,7 +509,7 @@ class _AppShellLayoutState extends ConsumerState<AppShellLayout> {
                             label: 'Activities',
                             textKey: const Key('nav_rail_activities'),
                             isSelected:
-                                location.contains('acitivitygroups') ||
+                                location.contains('activitygroups') ||
                                 location.contains('activities'),
                             onTap: () {
                               context.go(RouterPaths.settingsActivityGroups);

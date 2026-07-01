@@ -2,7 +2,8 @@
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cappla/models/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:cappla/models/org_unit_model.dart';
 import 'package:cappla/services/database/database_service.dart';
 import 'package:cappla/services/auth_service.dart';
@@ -12,19 +13,19 @@ import 'e2e_test_harness.dart';
 // ---------------------------------------------------------
 // ADVERSARIAL MOCK AUTHENTICATION SYSTEM
 // ---------------------------------------------------------
-class AdversarialMockUser {
-  final String? email;
-  final String uid;
-  AdversarialMockUser({this.email, required this.uid});
-}
+typedef AdversarialMockUser = MockUser;
 
-class AdversarialMockAuth {
-  final _controller = StreamController<AdversarialMockUser?>.broadcast();
-  AdversarialMockUser? _currentUser;
+class AdversarialMockAuth extends MockFirebaseAuth {
+  final _controller = StreamController<User?>.broadcast();
+  User? _currentUser;
 
-  AdversarialMockUser? get currentUser => _currentUser;
+  AdversarialMockAuth() : super(signedIn: false);
 
-  Stream<AdversarialMockUser?> authStateChanges() async* {
+  @override
+  User? get currentUser => _currentUser;
+
+  @override
+  Stream<User?> authStateChanges() async* {
     print(
       'DEBUG: authStateChanges subscribed. Current user = ${_currentUser?.email}',
     );
@@ -32,7 +33,7 @@ class AdversarialMockAuth {
     yield* _controller.stream;
   }
 
-  void emit(AdversarialMockUser? user) {
+  void emit(User? user) {
     print('DEBUG: emit called with user = ${user?.email}');
     _currentUser = user;
     _controller.add(user);
@@ -45,28 +46,39 @@ class AdversarialMockAuth {
     credentials[email] = password;
   }
 
-  Future<void> signInWithEmailAndPassword({
+  @override
+  Future<UserCredential> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
     print('DEBUG: signInWithEmailAndPassword called for $email');
     if (credentials.containsKey(email) && credentials[email] == password) {
-      final user = AdversarialMockUser(
+      mockUser = MockUser(
         email: email,
         uid: email.hashCode.toString(),
       );
-      emit(user);
+      final cred = await super.signInWithEmailAndPassword(email: email, password: password);
+      emit(cred.user);
+      return cred;
     } else {
-      throw Exception('auth/invalid-credential');
+      throw FirebaseAuthException(
+        code: 'invalid-credential',
+        message: 'The email address or password is incorrect.',
+      );
     }
   }
 
+  @override
   Future<void> signOut() async {
-    print('DEBUG: signOut called');
+    await super.signOut();
     emit(null);
   }
 
-  Future<void> sendPasswordResetEmail({required String email}) async {
+  @override
+  Future<void> sendPasswordResetEmail({
+    required String email,
+    ActionCodeSettings? actionCodeSettings,
+  }) async {
     sentPasswordResets.add(email);
   }
 }

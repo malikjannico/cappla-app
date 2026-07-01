@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/providers/providers.dart';
 import '../../services/database/database_service.dart';
 import '../../core/router/router_paths.dart';
-import '../../models/user_model.dart';
 import 'm3_segmented_button.dart';
 
 import 'planning/assign_dialog.dart';

@@ -4,6 +4,7 @@ import '../../models/category_model.dart';
 import '../../models/activity_group_model.dart';
 import '../../models/activity_model.dart';
 import '../../models/user_capacity_model.dart';
+import '../../models/enums.dart';
 import 'database_service.dart';
 
 Future<void> performFullSeeding(DatabaseService db) async {
@@ -102,12 +103,12 @@ Future<void> performFullSeeding(DatabaseService db) async {
   final allSeededUsers = [admin, mateo, sandro, sven];
   for (final u in allSeededUsers) {
     final capacities = await db.getUserCapacities(u.email);
-    final hasStandard = capacities.any((c) => c.type == 'Standard');
+    final hasStandard = capacities.any((c) => c.type == CapacityType.standard);
     if (!hasStandard) {
       final defaultStandard = UserCapacityModel(
         id: 'standard_${u.email.trim().toLowerCase()}',
         userEmail: u.email.trim().toLowerCase(),
-        type: 'Standard',
+        type: CapacityType.standard,
         monday: 8.0,
         tuesday: 8.0,
         wednesday: 8.0,

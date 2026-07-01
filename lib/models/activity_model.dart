@@ -1,9 +1,11 @@
+import 'enums.dart';
+
 class ActivityModel {
   final String id;
   final String name;
   final String activityGroupId;
   final String? categoryId;
-  final String type; // "Unlimited" | "Limited"
+  final ActivityType type;
   final DateTime? validityStart;
   final DateTime? validityEnd;
   final String ownerOrgUnitId;
@@ -22,7 +24,7 @@ class ActivityModel {
     required this.name,
     required this.activityGroupId,
     this.categoryId,
-    required this.type,
+    required dynamic type,
     this.validityStart,
     this.validityEnd,
     required this.ownerOrgUnitId,
@@ -35,14 +37,14 @@ class ActivityModel {
     required this.lastModifiedAt,
     required this.order,
     this.assignedUserEmails = const [],
-  });
+  }) : type = type is ActivityType ? type : ActivityType.fromString(type.toString());
 
   ActivityModel copyWith({
     String? id,
     String? name,
     String? activityGroupId,
     String? Function()? categoryId,
-    String? type,
+    dynamic type,
     DateTime? Function()? validityStart,
     DateTime? Function()? validityEnd,
     String? ownerOrgUnitId,
@@ -60,7 +62,7 @@ class ActivityModel {
     name: name ?? this.name,
     activityGroupId: activityGroupId ?? this.activityGroupId,
     categoryId: categoryId != null ? categoryId() : this.categoryId,
-    type: type ?? this.type,
+    type: type != null ? (type is ActivityType ? type : ActivityType.fromString(type.toString())) : this.type,
     validityStart: validityStart != null ? validityStart() : this.validityStart,
     validityEnd: validityEnd != null ? validityEnd() : this.validityEnd,
     ownerOrgUnitId: ownerOrgUnitId ?? this.ownerOrgUnitId,
@@ -80,7 +82,7 @@ class ActivityModel {
     'name': name,
     'activityGroupId': activityGroupId,
     'categoryId': categoryId,
-    'type': type,
+    'type': type.value,
     'validityStart': validityStart?.toIso8601String(),
     'validityEnd': validityEnd?.toIso8601String(),
     'ownerOrgUnitId': ownerOrgUnitId,
@@ -111,14 +113,14 @@ class ActivityModel {
     }
 
     return ActivityModel(
-      id: map['id'],
-      name: map['name'],
-      activityGroupId: map['activityGroupId'],
+      id: map['id'] ?? '',
+      name: map['name'] ?? '',
+      activityGroupId: map['activityGroupId'] ?? '',
       categoryId: map['categoryId'],
-      type: map['type'],
+      type: ActivityType.fromString(map['type'] ?? 'Unlimited'),
       validityStart: parseDate(map['validityStart']),
       validityEnd: parseDate(map['validityEnd']),
-      ownerOrgUnitId: map['ownerOrgUnitId'],
+      ownerOrgUnitId: map['ownerOrgUnitId'] ?? '',
       sharedOrgUnitIds: List<String>.from(map['sharedOrgUnitIds'] ?? []),
       appliedOrgUnitIds: List<String>.from(map['appliedOrgUnitIds'] ?? []),
       statusMap: Map<String, String>.from(map['statusMap'] ?? {}),

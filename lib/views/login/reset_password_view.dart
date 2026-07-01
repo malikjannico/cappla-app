@@ -121,7 +121,10 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
             .toLowerCase();
 
     final db = ref.read(databaseServiceProvider);
-    if (db.toString().contains('Mock')) {
+    final firestore = ref.read(firestoreProvider);
+    if (db.toString().contains('Mock') ||
+        firestore.toString().contains('Mock') ||
+        firestore.toString().contains('Fake')) {
       // Integration tests fallback
       final correctCode = ref.read(resetPasswordCodeProvider);
       if (enteredCode == correctCode || enteredCode == '123456') {
@@ -143,7 +146,6 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
     });
 
     try {
-      final firestore = FirebaseFirestore.instance;
       // Write verification request (delete first to guarantee onCreate trigger fires)
       await firestore.collection('passwordResetVerifications').doc(email).delete().catchError((_) {});
       await firestore.collection('passwordResetVerifications').doc(email).set({
@@ -210,7 +212,10 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
             .toLowerCase();
 
     final db = ref.read(databaseServiceProvider);
-    if (db.toString().contains('Mock')) {
+    final firestore = ref.read(firestoreProvider);
+    if (db.toString().contains('Mock') ||
+        firestore.toString().contains('Mock') ||
+        firestore.toString().contains('Fake')) {
       // Integration tests fallback
       final code = (100000 + (DateTime.now().microsecondsSinceEpoch % 900000))
           .toString();
@@ -237,7 +242,6 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
     });
 
     try {
-      final firestore = FirebaseFirestore.instance;
       // Delete first to guarantee onCreate trigger fires
       await firestore.collection('passwordResetRequests').doc(email).delete().catchError((_) {});
       await firestore.collection('passwordResetRequests').doc(email).set({
@@ -311,7 +315,10 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
             .toLowerCase();
 
     final db = ref.read(databaseServiceProvider);
-    if (db.toString().contains('Mock')) {
+    final firestore = ref.read(firestoreProvider);
+    if (db.toString().contains('Mock') ||
+        firestore.toString().contains('Mock') ||
+        firestore.toString().contains('Fake')) {
       // Integration tests fallback
       setState(() {
         _isLoading = true;
@@ -345,7 +352,7 @@ class _ResetPasswordViewState extends ConsumerState<ResetPasswordView> {
     });
 
     try {
-      final firestore = FirebaseFirestore.instance;
+      final firestore = ref.read(firestoreProvider);
       // Write the password reset submission (delete first to guarantee onCreate trigger fires)
       await firestore.collection('passwordResetSubmissions').doc(email).delete().catchError((_) {});
       await firestore.collection('passwordResetSubmissions').doc(email).set({

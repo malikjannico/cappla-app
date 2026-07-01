@@ -9,6 +9,7 @@ import '../../models/user_capacity_model.dart';
 import '../../models/planning_demand_model.dart';
 import '../../models/planning_allocation_model.dart';
 import '../../models/lock_model.dart';
+import '../../core/utils/org_unit_validator.dart';
 import 'database_service.dart';
 
 class FirestoreDatabaseService implements DatabaseService {
@@ -22,7 +23,7 @@ class FirestoreDatabaseService implements DatabaseService {
         .collection('users')
         .doc(email.trim().toLowerCase())
         .get();
-    if (doc.exists && doc.data() != null) {
+    if (doc.exists && doc.data() != null && doc.data()!.isNotEmpty) {
       return UserModel.fromMap(doc.data()!);
     }
     return null;
@@ -35,7 +36,7 @@ class FirestoreDatabaseService implements DatabaseService {
         .where('id', isEqualTo: id)
         .limit(1)
         .get();
-    if (query.docs.isNotEmpty) {
+    if (query.docs.isNotEmpty && query.docs.first.data().isNotEmpty) {
       return UserModel.fromMap(query.docs.first.data());
     }
     return null;
@@ -87,7 +88,7 @@ class FirestoreDatabaseService implements DatabaseService {
         .where('id', isEqualTo: id)
         .snapshots()
         .map((snapshot) {
-          if (snapshot.docs.isNotEmpty) {
+          if (snapshot.docs.isNotEmpty && snapshot.docs.first.data().isNotEmpty) {
             return UserModel.fromMap(snapshot.docs.first.data());
           }
           return null;
@@ -101,7 +102,7 @@ class FirestoreDatabaseService implements DatabaseService {
         .doc(email.trim().toLowerCase())
         .snapshots()
         .map((doc) {
-          if (doc.exists && doc.data() != null) {
+          if (doc.exists && doc.data() != null && doc.data()!.isNotEmpty) {
             return UserModel.fromMap(doc.data()!);
           }
           return null;
@@ -130,9 +131,6 @@ class FirestoreDatabaseService implements DatabaseService {
     return null;
   }
 
-  Future<void> _rawWriteOrgUnit(OrgUnitModel unit) async {
-    await _firestore.collection('orgUnits').doc(unit.id).set(unit.toMap());
-  }
 
   @override
   Stream<OrgUnitModel?> watchOrgUnit(String id) {
@@ -155,227 +153,192 @@ class FirestoreDatabaseService implements DatabaseService {
 
   @override
   Future<void> saveOrgUnit(OrgUnitModel orgUnit) async {
-    // Service/Database-Level Type Constraints
-    if (orgUnit.type == 'md division' && orgUnit.parentId != null) {
-      throw DatabaseValidationException(
-        'Hierarchy error: MD Division cannot have a parent assigned.',
+    await _firestore.runTransaction((transaction) async {
+      Future<OrgUnitModel?> txGetOrgUnit(String id) async {
+        final doc = await transaction.get(_firestore.collection('orgUnits').doc(id));
+        if (doc.exists && doc.data() != null) {
+          return OrgUnitModel.fromMap(doc.data()!);
+        }
+        return null;
+      }
+
+      await OrgUnitValidator.validate(
+        orgUnit: orgUnit,
+        getOrgUnit: txGetOrgUnit,
       );
-    }
-    if (orgUnit.type == 'team' && orgUnit.childIds.isNotEmpty) {
-      throw DatabaseValidationException(
-        'Hierarchy error: Team cannot have children.',
-      );
-    }
 
-    if (orgUnit.parentId != null) {
-      final parent = await getOrgUnit(orgUnit.parentId!);
-      if (parent == null) {
-        throw DatabaseValidationException('Parent unit does not exist.');
-      }
-    }
+      final oldOrgUnit = await txGetOrgUnit(orgUnit.id);
+      final Map<String, OrgUnitModel> updates = {};
+      updates[orgUnit.id] = orgUnit;
 
-    for (final childId in orgUnit.childIds) {
-      final child = await getOrgUnit(childId);
-      if (child == null) {
-        throw DatabaseValidationException('Child unit does not exist.');
-      }
-    }
-
-    // Cycle Prevention Check
-    final Set<String> ancestors = {};
-    String? currentParentId = orgUnit.parentId;
-    while (currentParentId != null) {
-      if (currentParentId == orgUnit.id) {
-        throw OrgUnitCycleException(
-          'Cycle detected: Circular hierarchy not allowed.',
-        );
-      }
-      if (ancestors.contains(currentParentId)) {
-        throw OrgUnitCycleException(
-          'Cycle detected: Circular hierarchy not allowed.',
-        );
-      }
-      final parent = await getOrgUnit(currentParentId);
-      if (parent == null) break;
-      ancestors.add(currentParentId);
-      currentParentId = parent.parentId;
-    }
-
-    for (final childId in orgUnit.childIds) {
-      if (ancestors.contains(childId) || childId == orgUnit.id) {
-        throw OrgUnitCycleException(
-          'Cycle detected: Circular hierarchy not allowed.',
-        );
-      }
-    }
-
-    final oldOrgUnit = await getOrgUnit(orgUnit.id);
-
-    // Save org unit
-    await _rawWriteOrgUnit(orgUnit);
-
-    // Dissolving relation & Syncing
-    if (oldOrgUnit == null) {
-      // New Org Unit
-      if (orgUnit.parentId != null) {
-        final parent = await getOrgUnit(orgUnit.parentId!);
-        if (parent != null) {
-          if (!parent.childIds.contains(orgUnit.id)) {
-            await _rawWriteOrgUnit(
-              parent.copyWith(childIds: [...parent.childIds, orgUnit.id]),
-            );
+      // Dissolving relation & Syncing
+      if (oldOrgUnit == null) {
+        // New Org Unit
+        if (orgUnit.parentId != null) {
+          final parent = await txGetOrgUnit(orgUnit.parentId!);
+          if (parent != null) {
+            if (!parent.childIds.contains(orgUnit.id)) {
+              updates[parent.id] = parent.copyWith(
+                childIds: [...parent.childIds, orgUnit.id],
+              );
+            }
           }
         }
-      }
-      if (orgUnit.childIds.isNotEmpty) {
-        for (final cId in orgUnit.childIds) {
-          final child = await getOrgUnit(cId);
-          if (child != null) {
-            if (child.parentId != null && child.parentId != orgUnit.id) {
-              final oldParent = await getOrgUnit(child.parentId!);
-              if (oldParent != null) {
-                await _rawWriteOrgUnit(
-                  oldParent.copyWith(
-                    childIds: oldParent.childIds
-                        .where((id) => id != cId)
-                        .toList(),
-                  ),
+        if (orgUnit.childIds.isNotEmpty) {
+          for (final cId in orgUnit.childIds) {
+            final child = await txGetOrgUnit(cId);
+            if (child != null) {
+              if (child.parentId != null && child.parentId != orgUnit.id) {
+                final oldParent = await txGetOrgUnit(child.parentId!);
+                if (oldParent != null) {
+                  updates[oldParent.id] = oldParent.copyWith(
+                    childIds: oldParent.childIds.where((id) => id != cId).toList(),
+                  );
+                }
+              }
+              updates[child.id] = child.copyWith(parentId: () => orgUnit.id);
+            }
+          }
+        }
+      } else {
+        // Existing Org Unit
+        // If parentId changes
+        if (oldOrgUnit.parentId != orgUnit.parentId) {
+          if (oldOrgUnit.parentId != null) {
+            final oldParent = await txGetOrgUnit(oldOrgUnit.parentId!);
+            if (oldParent != null) {
+              updates[oldParent.id] = oldParent.copyWith(
+                childIds: oldParent.childIds.where((id) => id != orgUnit.id).toList(),
+              );
+            }
+          }
+          if (orgUnit.parentId != null) {
+            final newParent = await txGetOrgUnit(orgUnit.parentId!);
+            if (newParent != null) {
+              if (!newParent.childIds.contains(orgUnit.id)) {
+                updates[newParent.id] = newParent.copyWith(
+                  childIds: [...newParent.childIds, orgUnit.id],
                 );
               }
             }
-            await _rawWriteOrgUnit(child.copyWith(parentId: () => orgUnit.id));
+          }
+        }
+        // If children list changes
+        final oldChildren = oldOrgUnit.childIds;
+        final newChildren = orgUnit.childIds;
+        final removedChildren = oldChildren.where((id) => !newChildren.contains(id)).toList();
+        final addedChildren = newChildren.where((id) => !oldChildren.contains(id)).toList();
+
+        for (final cId in removedChildren) {
+          final child = await txGetOrgUnit(cId);
+          if (child != null && child.parentId == orgUnit.id) {
+            updates[child.id] = child.copyWith(parentId: () => null);
+          }
+        }
+        for (final cId in addedChildren) {
+          final child = await txGetOrgUnit(cId);
+          if (child != null) {
+            if (child.parentId != null && child.parentId != orgUnit.id) {
+              final oldParent = await txGetOrgUnit(child.parentId!);
+              if (oldParent != null) {
+                updates[oldParent.id] = oldParent.copyWith(
+                  childIds: oldParent.childIds.where((id) => id != cId).toList(),
+                );
+              }
+            }
+            updates[child.id] = child.copyWith(parentId: () => orgUnit.id);
           }
         }
       }
-    } else {
-      // Existing Org Unit
-      // If parentId changes
-      if (oldOrgUnit.parentId != orgUnit.parentId) {
-        if (oldOrgUnit.parentId != null) {
-          final oldParent = await getOrgUnit(oldOrgUnit.parentId!);
-          if (oldParent != null) {
-            await _rawWriteOrgUnit(
-              oldParent.copyWith(
-                childIds: oldParent.childIds
-                    .where((id) => id != orgUnit.id)
-                    .toList(),
-              ),
-            );
-          }
-        }
-        if (orgUnit.parentId != null) {
-          final newParent = await getOrgUnit(orgUnit.parentId!);
-          if (newParent != null) {
-            if (!newParent.childIds.contains(orgUnit.id)) {
-              await _rawWriteOrgUnit(
-                newParent.copyWith(
-                  childIds: [...newParent.childIds, orgUnit.id],
-                ),
-              );
+
+      // Active status propagation
+      if (orgUnit.status == 'Inactive') {
+        Future<void> propagateInactiveStatusTx(
+          List<String> childIds,
+          Set<String> visited,
+        ) async {
+          for (final childId in childIds) {
+            if (visited.contains(childId)) continue;
+            visited.add(childId);
+            final child = updates[childId] ?? await txGetOrgUnit(childId);
+            if (child != null) {
+              if (child.status != 'Inactive') {
+                final updatedChild = child.copyWith(status: 'Inactive');
+                updates[childId] = updatedChild;
+                await propagateInactiveStatusTx(updatedChild.childIds, visited);
+              }
             }
           }
         }
+        await propagateInactiveStatusTx(orgUnit.childIds, {orgUnit.id});
       }
-      // If children list changes
-      final oldChildren = oldOrgUnit.childIds;
-      final newChildren = orgUnit.childIds;
-      final removedChildren = oldChildren
-          .where((id) => !newChildren.contains(id))
-          .toList();
-      final addedChildren = newChildren
-          .where((id) => !oldChildren.contains(id))
-          .toList();
 
-      for (final cId in removedChildren) {
-        final child = await getOrgUnit(cId);
-        if (child != null && child.parentId == orgUnit.id) {
-          await _rawWriteOrgUnit(child.copyWith(parentId: () => null));
-        }
+      // Commit all org unit updates
+      for (final entry in updates.entries) {
+        transaction.set(
+          _firestore.collection('orgUnits').doc(entry.key),
+          entry.value.toMap(),
+        );
       }
-      for (final cId in addedChildren) {
-        final child = await getOrgUnit(cId);
-        if (child != null) {
-          if (child.parentId != null && child.parentId != orgUnit.id) {
-            final oldParent = await getOrgUnit(child.parentId!);
-            if (oldParent != null) {
-              await _rawWriteOrgUnit(
-                oldParent.copyWith(
-                  childIds: oldParent.childIds
-                      .where((id) => id != cId)
-                      .toList(),
-                ),
-              );
-            }
-          }
-          await _rawWriteOrgUnit(child.copyWith(parentId: () => orgUnit.id));
-        }
-      }
-    }
-
-    // Active status propagation
-    if (orgUnit.status == 'Inactive') {
-      await _propagateInactiveStatus(orgUnit.childIds, {orgUnit.id});
-    }
-  }
-
-  Future<void> _propagateInactiveStatus(
-    List<String> childIds,
-    Set<String> visited,
-  ) async {
-    for (final childId in childIds) {
-      if (visited.contains(childId)) continue;
-      visited.add(childId);
-      final child = await getOrgUnit(childId);
-      if (child != null) {
-        if (child.status != 'Inactive') {
-          await _rawWriteOrgUnit(child.copyWith(status: 'Inactive'));
-          await _propagateInactiveStatus(child.childIds, visited);
-        }
-      }
-    }
+    });
   }
 
   @override
   Future<void> deleteOrgUnit(String id) async {
-    final unit = await getOrgUnit(id);
-    if (unit != null) {
-      // Remove id from parent's childIds
-      if (unit.parentId != null) {
-        final parent = await getOrgUnit(unit.parentId!);
-        if (parent != null) {
-          await _rawWriteOrgUnit(
-            parent.copyWith(
+    final allUsers = await getAllUsers();
+    final usersToClear = allUsers.where((u) => u.orgUnitId == id).toList();
+
+    await _firestore.runTransaction((transaction) async {
+      Future<OrgUnitModel?> txGetOrgUnit(String id) async {
+        final doc = await transaction.get(_firestore.collection('orgUnits').doc(id));
+        if (doc.exists && doc.data() != null) {
+          return OrgUnitModel.fromMap(doc.data()!);
+        }
+        return null;
+      }
+
+      final unit = await txGetOrgUnit(id);
+      if (unit != null) {
+        final Map<String, OrgUnitModel> updates = {};
+
+        // Remove id from parent's childIds
+        if (unit.parentId != null) {
+          final parent = await txGetOrgUnit(unit.parentId!);
+          if (parent != null) {
+            updates[parent.id] = parent.copyWith(
               childIds: parent.childIds.where((cId) => cId != id).toList(),
-            ),
+            );
+          }
+        }
+
+        // Clear parentId on all children
+        for (final cId in unit.childIds) {
+          final child = await txGetOrgUnit(cId);
+          if (child != null) {
+            updates[child.id] = child.copyWith(parentId: () => null);
+          }
+        }
+
+        // Commit all org unit updates
+        for (final entry in updates.entries) {
+          transaction.set(
+            _firestore.collection('orgUnits').doc(entry.key),
+            entry.value.toMap(),
           );
         }
-      }
-      // Clear parentId on all children
-      for (final cId in unit.childIds) {
-        final child = await getOrgUnit(cId);
-        if (child != null) {
-          await _rawWriteOrgUnit(child.copyWith(parentId: () => null));
-        }
-      }
-      // Clear orgUnitId on all users associated
-      final allUsers = await getAllUsers();
-      for (final user in allUsers) {
-        if (user.orgUnitId == id) {
-          await saveUser(
-            UserModel(
-              id: user.id,
-              fullName: user.fullName,
-              email: user.email,
-              title: user.title,
-              orgUnitId: null,
-              status: user.status,
-              role: user.role,
-            ),
+
+        // Clear orgUnitId on all associated users
+        for (final user in usersToClear) {
+          transaction.set(
+            _firestore.collection('users').doc(user.id),
+            user.copyWith(orgUnitId: () => null).toMap(),
           );
         }
+
+        // Finally delete the org unit
+        transaction.delete(_firestore.collection('orgUnits').doc(id));
       }
-    }
-    await _firestore.collection('orgUnits').doc(id).delete();
+    });
   }
 
   @override
